@@ -10,12 +10,13 @@ using TwoFactorAuthNet;
 using System.Text.RegularExpressions;
 using NLog;
 using OpenQA.Selenium.Interactions;
+using Protractor;
 
 namespace AIOFlipper
 {
     class Flipper
     {
-        private IWebDriver driver;
+        private NgWebDriver driver;
         private List<string> tabs;
 
         private static Logger logger;
@@ -1147,28 +1148,18 @@ namespace AIOFlipper
             // Instanciate the logger.
             logger = LogManager.GetLogger("Flipper");
 
-            // Edge driver
             EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
 
-            driver = new EdgeDriver(driverService);
+            IWebDriver edgeDriver = new EdgeDriver(driverService);
 
             logger.Debug("Started new edge driver");
-            //End of Edge driver
 
-            //// Opera
-            //DriverService driverService = OperaDriverService.CreateDefaultService();
-            //driverService.HideCommandPromptWindow = true;
-            //driverService.Start();
+            // Configure timeouts (important since Protractor uses asynchronous client side scripts)
+            edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
 
-            //OperaOptions options = new OperaOptions();
-            //options.BinaryLocation = @"C:\Program Files\Opera\49.0.2725.64\opera.exe";
-            //options.AddArguments("--disable-notifications");
-
-            //driver = new RemoteWebDriver(driverService.ServiceUrl, options);
-
-            //// End of Opera
-
+            // Initialize the NgWebDriver
+            driver = new NgWebDriver(edgeDriver);
 
             foreach (Account tempAccount in accounts)
             {
