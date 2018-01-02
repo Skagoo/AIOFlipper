@@ -59,6 +59,55 @@ namespace AIOFlipper
                 }
             }
         }
+
+        public static IWebElement FindElement(this IWebDriver driver, By by, int timeoutInSeconds, string valueAttributeText)
+        {
+            try
+            {
+                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutInSeconds));
+                IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(by));
+                wait.Until(ExpectedConditions.TextToBePresentInElement(element, valueAttributeText));
+
+                return element;
+            }
+            catch (Exception)
+            {
+                bool hasInternetConnectivity = CheckInternetConnectivity();
+                int internetCheckingDurationInSeconds = 600;
+
+                while (!hasInternetConnectivity && internetCheckingDurationInSeconds > 0)
+                {
+                    hasInternetConnectivity = CheckInternetConnectivity();
+                    internetCheckingDurationInSeconds--;
+                }
+
+                if (hasInternetConnectivity)
+                {
+                    try
+                    {
+                        return driver.FindElement(by);
+                    }
+                    catch (NoSuchElementException e)
+                    {
+                        // Check if the currentAccount has been disconnected. If so throw new DisconnectedFromRSCompanionException.
+                        if (CheckAccountDisconnected(driver))
+                        {
+                            throw new DisconnectedFromRSCompanionException();
+                        }
+                        else
+                        {
+                            throw e;
+                        }
+                    }
+
+                }
+                else
+                {
+                    throw new NoSuchElementException();
+                }
+            }
+        }
+
         private static bool CheckInternetConnectivity()
         {
             try
