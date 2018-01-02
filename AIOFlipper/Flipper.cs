@@ -815,14 +815,22 @@ namespace AIOFlipper
 
             foreach (string tab in driver.WindowHandles)
             {
-                // Switch tab
-                driver.SwitchTo().Window(tab);
-
-                if (tab != driver.WindowHandles.First() && driver.Title != "RS Companion")
+                try
                 {
-                    newTab = driver.CurrentWindowHandle;
-                    break;
+                    // Switch tab
+                    driver.SwitchTo().Window(tab);
+
+                    if (tab != driver.WindowHandles.First() && driver.Title != "RS Companion")
+                    {
+                        newTab = driver.CurrentWindowHandle;
+                        break;
+                    }
                 }
+                catch (NoSuchWindowException)
+                {
+                    // The tab was not found?
+                    // ignore
+                }                
             }
 
             // Replace the closed tab in the tabs list with the new tab
