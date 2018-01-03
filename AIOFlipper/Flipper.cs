@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using NLog;
 using OpenQA.Selenium.Interactions;
 using Protractor;
+using OpenQA.Selenium.Support.UI;
 
 namespace AIOFlipper
 {
@@ -738,7 +739,7 @@ namespace AIOFlipper
             }
             catch (Exception)
             {
-                driver.Navigate().Refresh();
+                driver.WrappedDriver.Navigate().Refresh();
                 Console.Beep();
                 Login();
             }
@@ -774,12 +775,23 @@ namespace AIOFlipper
             try
             {
                 string geTabElementCsss = (string)Program.Elements["elements"][1]["menu_tabs"][0]["css_selector"];
+                string slotListElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][1]["css_selector"];
 
                 IWebElement geTabElement = driver.FindElement(By.CssSelector(geTabElementCsss), 10);
                 geTabElement.Click();
 
-                //// Sleep for 5 seconds so the GE page can load successfuly.
-                //Thread.Sleep(5000);
+                // Get the slots list element
+                IWebElement slotListElement = driver.FindElement(By.CssSelector(slotListElementCsss), 20);
+
+                foreach (IWebElement child in slotListElement.FindElements(By.TagName("li")))
+                {
+                    // Wait for all slots to load properly
+                    var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+                    wait.Until(ExpectedConditions.ElementToBeClickable(child));
+                }
+
+                // Sleep since the slot elements behave weird and this prevents the wrong slot being used.
+                Thread.Sleep(1000);
             }
             catch (DisconnectedFromRSCompanionException)
             {
@@ -793,6 +805,11 @@ namespace AIOFlipper
                 // Log
                 logger.Warn("Account has been disconnected. Attempting to reconnect");
                 Reconnect();
+                OpenGrandExchange();
+            }
+            catch (NoSuchElementException)
+            {
+                OpenBank();
                 OpenGrandExchange();
             }
         }
