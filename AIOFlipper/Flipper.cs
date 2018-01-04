@@ -55,6 +55,11 @@ namespace AIOFlipper
                 string offerCollectionSlot1ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][28]["css_selector"];
                 string offerCollectionSlot2ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][29]["css_selector"];
 
+                string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                // Wait for the slot with the correct item name to be visible
+                driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+
                 // Open the slot.
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
@@ -280,8 +285,14 @@ namespace AIOFlipper
 
                     if (slotState == "complete buying" || slotState == "complete")
                     {
+
                         // Open the slot
                         string slotOpenElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][15]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+                        string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                        // Wait for the slot with the correct item name to be visible
+                        driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+
 
                         IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
                         slotOpenElement.Click();
@@ -372,6 +383,14 @@ namespace AIOFlipper
                 return slotState;
             }
             catch (DisconnectedFromRSCompanionException)
+            {
+                // Log
+                logger.Warn("Account has been disconnected. Attempting to reconnect");
+                Reconnect();
+                OpenGrandExchange();
+                return CheckSlotState(slotNumber);
+            }
+            catch (WebDriverException)
             {
                 // Log
                 logger.Warn("Account has been disconnected. Attempting to reconnect");
@@ -512,7 +531,10 @@ namespace AIOFlipper
                 string offerCollectionSlot1ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][28]["css_selector"];
                 string offerCollectionSlot2ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][29]["css_selector"];
 
-                //Thread.Sleep(500);
+                string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                // Wait for the slot with the correct item name to be visible
+                driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
                 // Open the slot.
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
@@ -783,12 +805,16 @@ namespace AIOFlipper
                 // Get the slots list element
                 IWebElement slotListElement = driver.FindElement(By.CssSelector(slotListElementCsss), 20);
 
-                foreach (IWebElement child in slotListElement.FindElements(By.TagName("li")))
-                {
-                    // Wait for all slots to load properly
-                    var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
-                    wait.Until(ExpectedConditions.ElementToBeClickable(child));
-                }
+                //foreach (IWebElement child in slotListElement.FindElements(By.TagName("li")))
+                //{
+                //    // Wait for all slots to load properly
+                //    var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+                //    wait.Until(ExpectedConditions.ElementToBeClickable(child));
+                //}
+
+                // Wait for all slots to load properly
+                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+                wait.Until(ExpectedConditions.VisibilityOfAllElementsLocatedBy(By.TagName("li")));
 
                 // Sleep since the slot elements behave weird and this prevents the wrong slot being used.
                 Thread.Sleep(1000);
@@ -1056,6 +1082,10 @@ namespace AIOFlipper
                     {
                         // Open the slot
                         string slotOpenElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][15]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+                        string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                        // Wait for the slot with the correct item name to be visible
+                        driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
                         IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
                         slotOpenElement.Click();

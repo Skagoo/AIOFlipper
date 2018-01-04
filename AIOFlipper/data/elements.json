@@ -200,7 +200,7 @@
                         },
                         {
                             "key": "open_slot",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1)",
+                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > img:nth-child(1)",
                             "class": "ng-scope",
                             "id": ""
                         },

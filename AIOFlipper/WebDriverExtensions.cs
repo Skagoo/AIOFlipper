@@ -51,6 +51,11 @@ namespace AIOFlipper
                             throw e;
                         }
                     }
+                    catch (WebDriverException)
+                    {
+                        // Most likely means we where disconnected anyways
+                        throw new DisconnectedFromRSCompanionException();
+                    }
 
                 }
                 else
@@ -65,7 +70,7 @@ namespace AIOFlipper
             try
             {
                 var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutInSeconds));
-                IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(by));
+                IWebElement element = wait.Until(ExpectedConditions.ElementIsVisible(by));
                 wait.Until(ExpectedConditions.TextToBePresentInElement(element, valueAttributeText));
 
                 return element;
