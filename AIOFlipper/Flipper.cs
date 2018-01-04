@@ -532,6 +532,7 @@ namespace AIOFlipper
                 string offerCollectionSlot2ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][29]["css_selector"];
 
                 string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+                string offerItemNameElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][30]["css_selector"];
 
                 // Wait for the slot with the correct item name to be visible
                 driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
@@ -540,10 +541,11 @@ namespace AIOFlipper
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
 
-                //Thread.Sleep(1500);
+                // Sleep to prevent collecting other slots
+                // Check if the correct slot was opened, else try again.
+                driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
 
                 IWebElement offerCollectionSlot1Element;
-
                 try
                 {
                     offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
@@ -557,6 +559,9 @@ namespace AIOFlipper
 
                 offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
                 offerCollectionSlot1Element.Click();
+
+
+                
             }
             catch (DisconnectedFromRSCompanionException)
             {
