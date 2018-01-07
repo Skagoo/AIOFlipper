@@ -541,6 +541,8 @@ namespace AIOFlipper
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
 
+                Thread.Sleep(1000);
+
                 // Sleep to prevent collecting other slots
                 // Check if the correct slot was opened, else try again.
                 driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
@@ -843,63 +845,135 @@ namespace AIOFlipper
                 OpenBank();
                 OpenGrandExchange();
             }
+            catch (TimeoutException)
+            {
+                Reconnect();
+                OpenGrandExchange();
+            }
         }
 
         private void Reconnect()
         {
-            // Get the current tab reference
-            string tabToClose = driver.CurrentWindowHandle;
-
-            // Close the tab
-            ((IJavaScriptExecutor)driver).ExecuteScript("window.close();");
-
-            // Focus the empty first tab
-            driver.SwitchTo().Window(driver.WindowHandles.First());
-
-            // Open a new tab
-            ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
-
-            // Get the new tabs reference
-            string newTab = null;
-
-            foreach (string tab in driver.WindowHandles)
+            try
             {
-                try
-                {
-                    // Switch tab
-                    driver.SwitchTo().Window(tab);
+                // Get the current tab reference
+                string tabToClose = driver.CurrentWindowHandle;
 
-                    if (tab != driver.WindowHandles.First() && driver.WrappedDriver.Title != "RS Companion")
+                // Close the tab
+                ((IJavaScriptExecutor)driver).ExecuteScript("window.close();");
+
+                // Focus the empty first tab
+                driver.SwitchTo().Window(driver.WindowHandles.First());
+
+                // Open a new tab
+                ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+
+                // Get the new tabs reference
+                string newTab = null;
+
+                foreach (string tab in driver.WindowHandles)
+                {
+                    try
                     {
-                        newTab = driver.CurrentWindowHandle;
-                        break;
+                        // Switch tab
+                        driver.SwitchTo().Window(tab);
+
+                        if (tab != driver.WindowHandles.First() && driver.WrappedDriver.Title != "RS Companion")
+                        {
+                            newTab = driver.CurrentWindowHandle;
+                            break;
+                        }
+                    }
+                    catch (NoSuchWindowException)
+                    {
+                        // The tab was not found?
+                        // ignore
                     }
                 }
-                catch (NoSuchWindowException)
-                {
-                    // The tab was not found?
-                    // ignore
-                }                
-            }
 
-            // Replace the closed tab in the tabs list with the new tab
-            for (int i = 0; i < tabs.Count; i++)
-            {
-                if (tabs[i] == tabToClose)
+                // Replace the closed tab in the tabs list with the new tab
+                for (int i = 0; i < tabs.Count; i++)
                 {
-                    tabs[i] = newTab;
+                    if (tabs[i] == tabToClose)
+                    {
+                        tabs[i] = newTab;
+                    }
                 }
+
+                // Switch to the new tab
+                driver.SwitchTo().Window(newTab);
+
+                GoToRuneScapeCompanionPage();
+
+                Login();
+
+                // Log
+                logger.Warn("Account has been successfully reconnected");
             }
+            catch (WebDriverException)
+            {
+                // Webdriver crashed, start a new webdriver
+                driver.Quit();
 
-            // Switch to the new tab
-            driver.SwitchTo().Window(newTab);
+                // Instanciate the logger.
+                logger = LogManager.GetLogger("Flipper");
 
-            GoToRuneScapeCompanionPage();
+                EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                driverService.HideCommandPromptWindow = true;
 
-            Login();
+                IWebDriver edgeDriver = new EdgeDriver(driverService);
 
-            // Log
-            logger.Warn("Account has been successfully reconnected");
+                logger.Debug("Started new edge driver");
+
+                // Configure timeouts (important since Protractor uses asynchronous client side scripts)
+                edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+
+                // Initialize the NgWebDriver
+                driver = new NgWebDriver(edgeDriver);
+
+                // Clear the old tabs list
+                tabs = new List<string>();
+
+                string tabOfActiveAccount = null;
+                string activeAccountUsername = currentAccount.Username;
+                foreach (Account tempAccount in accounts)
+                {
+                    // Set the currentAccount to tempAccount
+                    currentAccount = tempAccount;
+
+                    // Execute some JavaScript to open a new window
+                    ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+
+                    // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
+                    string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
+
+                    tabs.Add(newTab);
+
+                    // Switch our driver to the new tab's window handle
+                    driver.SwitchTo().Window(newTab);
+
+                    // Lets navigate to the RuneScape Companion web app in our new tab
+                    GoToRuneScapeCompanionPage();
+
+                    // Login the currentAccount
+                    Login();
+
+                    // Open the Grand Exchange page
+                    OpenGrandExchange();
+
+                    if (tempAccount.Username == activeAccountUsername)
+                    {
+                        tabOfActiveAccount = newTab;
+                    }
+                }
+
+                // Switch to the active account's tab
+                driver.SwitchTo().Window(tabOfActiveAccount);
+
+                // Log
+                logger.Warn("Account has been successfully reconnected");
+
+            }
         }
 
         private bool RemoveItemFromAvailableItems(string itemName)
@@ -950,6 +1024,7 @@ namespace AIOFlipper
                 int attemps = 1;
                 do
                 {
+                    //return;
                     try
                     {
                         // Enter the item name in the search bar and send "Enter" press to search.
