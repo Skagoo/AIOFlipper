@@ -105,294 +105,300 @@
             ]
         },
         {
-            "grand_exchange_page": [
+          "grand_exchange_page": [
+            {
+              "slot": [
                 {
-                    "slot": [
-                        {
-                            "key": "complete_selling",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.selling",
-                            "class": "slot clearfix ng-scope complete selling",
-                            "id": ""
-                        },
-                        {
-                            "key": "complete_buying",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.buying",
-                            "class": "slot clearfix ng-scope complete buying",
-                            "id": ""
-                        },
-                        {
-                            "key": "aborted_selling",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.aborted.selling",
-                            "class": "slot clearfix ng-scope aborted selling",
-                            "id": ""
-                        },
-                        {
-                            "key": "aborted_buying",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.aborted.buying",
-                            "class": "slot clearfix ng-scope aborted buying",
-                            "id": ""
-                        },
-                        {
-                            "key": "buying",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER)",
-                            "class": "slot clearfix ng-scope buying",
-                            "id": ""
-                        },
-                        {
-                            "key": "selling",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER)",
-                            "class": "slot clearfix ng-scope selling",
-                            "id": ""
-                        },
-                        {
-                            "key": "empty",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER)",
-                            "class": "slot clearfix ng-scope empty",
-                            "id": ""
-                        },
-                        {
-                            "key": "buy_button",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > a:nth-child(1)",
-                            "class": "button pill",
-                            "id": ""
-                        },
-                        {
-                            "key": "sell_button",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > a:nth-child(2)",
-                            "class": "button pill",
-                            "id": ""
-                        },
-                        {
-                            "key": "details_item",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > div:nth-child(2) > h2:nth-child(1)",
-                            "class": "ng-binding",
-                            "id": ""
-                        },
-                        {
-                            "key": "details_price",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > div:nth-child(2) > small:nth-child(2)",
-                            "class": "price ng-binding",
-                            "id": ""
-                        },
-                        {
-                            "key": "details_amount",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > div:nth-child(2) > small:nth-child(3)",
-                            "class": "amount ng-binding",
-                            "id": ""
-                        },
-                        {
-                            "key": "details_progress_bar",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER) > div > a > div > div > div",
-                            "class": "bar",
-                            "id": ""
-                        },
-                        {
-                            "key": "details_progress_bar_complete_buying",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.buying > div > a > div > div > div",
-                            "class": "bar",
-                            "id": ""
-                        },
-                        {
-                            "key": "details_progress_bar_complete_selling",
-                            "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.selling > div > a > div > div > div",
-                            "class": "bar",
-                            "id": ""
-                        },
-                        {
-                            "key": "open_slot",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > img:nth-child(1)",
-                            "class": "ng-scope",
-                            "id": ""
-                        },
-                        {
-                            "key": "slot_state",
-                            "css_selector": "li.slot:nth-child(SLOT_NUMBER)",
-                            "class": "",
-                            "id": ""
-                        },
-                        {
-                            "key": "money_pouch",
-                            "css_selector": ".right",
-                            "class": "right ng-binding",
-                            "id": ""
-                        }
-                    ]
+                  "key": "complete_selling",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.selling",
+                  "class": "slot clearfix ng-scope complete selling",
+                  "id": ""
                 },
                 {
-                    "key": "slot_list",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul",
-                    "class": "generic-list large-icon normal-spacing slots ng-scope",
-                    "id": ""
+                  "key": "complete_buying",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.buying",
+                  "class": "slot clearfix ng-scope complete buying",
+                  "id": ""
                 },
                 {
-                    "key": "buy_search",
-                    "css_selector": "#search",
-                    "class": "ng-pristine ng-invalid ng-invalid-required",
-                    "id": "search"
+                  "key": "aborted_selling",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.aborted.selling",
+                  "class": "slot clearfix ng-scope aborted selling",
+                  "id": ""
                 },
                 {
-                    "key": "buy_search_result_list",
-                    "css_selector": ".generic-list",
-                    "class": "generic-list normal-icon normal-spacing items ng-scope",
-                    "id": ""
+                  "key": "aborted_buying",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.aborted.buying",
+                  "class": "slot clearfix ng-scope aborted buying",
+                  "id": ""
                 },
                 {
-                    "key": "buy_search_result_item",
-                    "css_selector": "li.item:nth-child(CHILD_NUMBER)",
-                    "class": "item ng-scope",
-                    "id": ""
+                  "key": "buying",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER)",
+                  "class": "slot clearfix ng-scope buying",
+                  "id": ""
                 },
                 {
-                    "key": "buy_search_result_item_open",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div.content.push-top-double.push-bottom-tiny.ng-scope > ul > li:nth-child(CHILD_NUMBER) > a",
-                    "class": "",
-                    "id": ""
+                  "key": "selling",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER)",
+                  "class": "slot clearfix ng-scope selling",
+                  "id": ""
                 },
                 {
-                    "key": "buy_search_result_item_details_item",
-                    "css_selector": "li.item:nth-child(CHILD_NUMBER) > a:nth-child(1) > div:nth-child(2) > h2:nth-child(1)",
-                    "class": "title ng-binding",
-                    "id": ""
+                  "key": "empty",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER)",
+                  "class": "slot clearfix ng-scope empty",
+                  "id": ""
                 },
                 {
-                    "key": "buy_search_result_item_details_price",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div.content.push-top-double.push-bottom-tiny.ng-scope > ul > li:nth-child(CHILD_NUMBER) > a > div.details > span",
-                    "class": "subtitle ng-binding",
-                    "id": ""
+                  "key": "buy_button",
+                  "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > a:nth-child(1)",
+                  "class": "button pill",
+                  "id": ""
                 },
                 {
-                    "key": "buy_search_result_item_details_trend",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div.content.push-top-double.push-bottom-tiny.ng-scope > ul > li:nth-child(CHILD_NUMBER) > a > div.details > span > span",
-                    "class": "item.today.trend",
-                    "id": ""
+                  "key": "sell_button",
+                  "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > a:nth-child(2)",
+                  "class": "button pill",
+                  "id": ""
                 },
                 {
-                    "key": "offer_quantity",
-                    "css_selector": "input.centered-text:nth-child(2)",
-                    "class": "centered-text ng-pristine ng-valid-number ng-valid-min ng-invalid ng-invalid-required",
-                    "id": ""
+                  "key": "details_item",
+                  "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > div:nth-child(2) > h2:nth-child(1)",
+                  "class": "ng-binding",
+                  "id": ""
                 },
                 {
-                    "key": "offer_price_per_item",
-                    "css_selector": "input.centered-text:nth-child(5)",
-                    "class": "centered-text ng-pristine ng-valid ng-valid-number ng-valid-min ng-valid-required",
-                    "id": ""
+                  "key": "details_price",
+                  "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > div:nth-child(2) > small:nth-child(2)",
+                  "class": "price ng-binding",
+                  "id": ""
                 },
                 {
-                    "key": "offer_button_minus",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > div > a:nth-child(1)",
-                    "class": "button pill",
-                    "id": ""
+                  "key": "details_amount",
+                  "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > div:nth-child(2) > small:nth-child(3)",
+                  "class": "amount ng-binding",
+                  "id": ""
                 },
                 {
-                    "key": "offer_button_plus",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > div > a:nth-child(3)",
-                    "class": "button pill",
-                    "id": ""
+                  "key": "details_progress_bar",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li:nth-child(SLOT_NUMBER) > div > a > div > div > div",
+                  "class": "bar",
+                  "id": ""
                 },
                 {
-                    "key": "offer_button_mid",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > div > a:nth-child(2)",
-                    "class": "button pill",
-                    "id": ""
+                  "key": "details_progress_bar_complete_buying",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.buying > div > a > div > div > div",
+                  "class": "bar",
+                  "id": ""
                 },
                 {
-                    "key": "offer_total_price",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > span",
-                    "class": "total ng-scope ng-binding",
-                    "id": ""
+                  "key": "details_progress_bar_complete_selling",
+                  "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul > li.slot.clearfix.ng-scope.complete.selling > div > a > div > div > div",
+                  "class": "bar",
+                  "id": ""
                 },
                 {
-                    "key": "offer_button_confirm",
-                    "css_selector": ".primary",
-                    "class": "primary",
-                    "id": ""
+                  "key": "open_slot",
+                  "css_selector": "li.slot:nth-child(SLOT_NUMBER) > div:nth-child(1) > a:nth-child(1) > img:nth-child(1)",
+                  "class": "ng-scope",
+                  "id": ""
                 },
                 {
-                    "key": "offer_button_confirm_button_ok_buy",
-                    "css_selector": "div.pill-wrap:nth-child(3) > a:nth-child(2)",
-                    "class": "button pill",
-                    "id": ""
+                  "key": "slot_state",
+                  "css_selector": "li.slot:nth-child(SLOT_NUMBER)",
+                  "class": "",
+                  "id": ""
                 },
                 {
-                    "key": "offer_button_confirm_button_cancel_buy",
-                    "css_selector": "div.pill-wrap:nth-child(3) > a:nth-child(1)",
-                    "class": "button pill",
-                    "id": ""
-                },
-                {
-                    "key": "offer_button_confirm_button_ok_sell",
-                    "css_selector": "div.pill-wrap:nth-child(2) > a:nth-child(2)",
-                    "class": "button pill",
-                    "id": ""
-                },
-                {
-                    "key": "offer_button_confirm_button_cancel_sell",
-                    "css_selector": "div.pill-wrap:nth-child(3) > a:nth-child(1)",
-                    "class": "button pill",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_mid_price",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(1) > strong",
-                    "class": "right ng-binding",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_offer_price",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(2) > strong",
-                    "class": "right ng-binding",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_quantity",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(3) > strong",
-                    "class": "right ng-binding",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_total_price",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(4) > strong",
-                    "class": "right ng-binding",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_abort",
-                    "css_selector": ".abort",
-                    "class": "abort clickable",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_abort_confirm_button_ok",
-                    "css_selector": "a.button:nth-child(2)",
-                    "class": "button pill",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_abort_confirm_button_cancel",
-                    "css_selector": "a.button:nth-child(1)",
-                    "class": "button pill",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_abort_confirm_confirmed_ok",
-                    "css_selector": ".button",
-                    "class": "button pill fullwidth",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_collect_slot_1",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.status.ng-scope > a",
-                    "class": "item-thumb left ng-scope",
-                    "id": ""
-                },
-                {
-                    "key": "confirmed_offer_collect_slot_2",
-                    "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.status.ng-scope > a:nth-child(2)",
-                    "class": "item-thumb left ng-scope",
-                    "id": ""
+                  "key": "money_pouch",
+                  "css_selector": ".right",
+                  "class": "right ng-binding",
+                  "id": ""
                 }
-            ]
+              ]
+            },
+            {
+              "key": "slot_list",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > ul",
+              "class": "generic-list large-icon normal-spacing slots ng-scope",
+              "id": ""
+            },
+            {
+              "key": "buy_search",
+              "css_selector": "#search",
+              "class": "ng-pristine ng-invalid ng-invalid-required",
+              "id": "search"
+            },
+            {
+              "key": "buy_search_result_list",
+              "css_selector": ".generic-list",
+              "class": "generic-list normal-icon normal-spacing items ng-scope",
+              "id": ""
+            },
+            {
+              "key": "buy_search_result_item",
+              "css_selector": "li.item:nth-child(CHILD_NUMBER)",
+              "class": "item ng-scope",
+              "id": ""
+            },
+            {
+              "key": "buy_search_result_item_open",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div.content.push-top-double.push-bottom-tiny.ng-scope > ul > li:nth-child(CHILD_NUMBER) > a",
+              "class": "",
+              "id": ""
+            },
+            {
+              "key": "buy_search_result_item_details_item",
+              "css_selector": "li.item:nth-child(CHILD_NUMBER) > a:nth-child(1) > div:nth-child(2) > h2:nth-child(1)",
+              "class": "title ng-binding",
+              "id": ""
+            },
+            {
+              "key": "buy_search_result_item_details_price",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div.content.push-top-double.push-bottom-tiny.ng-scope > ul > li:nth-child(CHILD_NUMBER) > a > div.details > span",
+              "class": "subtitle ng-binding",
+              "id": ""
+            },
+            {
+              "key": "buy_search_result_item_details_trend",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div.content.push-top-double.push-bottom-tiny.ng-scope > ul > li:nth-child(CHILD_NUMBER) > a > div.details > span > span",
+              "class": "item.today.trend",
+              "id": ""
+            },
+            {
+              "key": "offer_quantity",
+              "css_selector": "input.centered-text:nth-child(2)",
+              "class": "centered-text ng-pristine ng-valid-number ng-valid-min ng-invalid ng-invalid-required",
+              "id": ""
+            },
+            {
+              "key": "offer_price_per_item",
+              "css_selector": "input.centered-text:nth-child(5)",
+              "class": "centered-text ng-pristine ng-valid ng-valid-number ng-valid-min ng-valid-required",
+              "id": ""
+            },
+            {
+              "key": "offer_button_minus",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > div > a:nth-child(1)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "offer_button_plus",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > div > a:nth-child(3)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "offer_button_mid",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > div > a:nth-child(2)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "offer_total_price",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.wrap > form > span",
+              "class": "total ng-scope ng-binding",
+              "id": ""
+            },
+            {
+              "key": "offer_button_confirm",
+              "css_selector": ".primary",
+              "class": "primary",
+              "id": ""
+            },
+            {
+              "key": "offer_button_confirm_button_ok_buy",
+              "css_selector": "div.pill-wrap:nth-child(3) > a:nth-child(2)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "offer_button_confirm_button_cancel_buy",
+              "css_selector": "div.pill-wrap:nth-child(3) > a:nth-child(1)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "offer_button_confirm_button_ok_sell",
+              "css_selector": "div.pill-wrap:nth-child(2) > a:nth-child(2)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "offer_button_confirm_button_cancel_sell",
+              "css_selector": "div.pill-wrap:nth-child(3) > a:nth-child(1)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_mid_price",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(1) > strong",
+              "class": "right ng-binding",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_offer_price",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(2) > strong",
+              "class": "right ng-binding",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_quantity",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(3) > strong",
+              "class": "right ng-binding",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_total_price",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > ul > li:nth-child(4) > strong",
+              "class": "right ng-binding",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_abort",
+              "css_selector": ".abort",
+              "class": "abort clickable",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_abort_confirm_button_ok",
+              "css_selector": "a.button:nth-child(2)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_abort_confirm_button_cancel",
+              "css_selector": "a.button:nth-child(1)",
+              "class": "button pill",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_abort_confirm_confirmed_ok",
+              "css_selector": ".button",
+              "class": "button pill fullwidth",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_collect_slot_1",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.status.ng-scope > a",
+              "class": "item-thumb left ng-scope",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_collect_slot_2",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.status.ng-scope > a:nth-child(2)",
+              "class": "item-thumb left ng-scope",
+              "id": ""
+            },
+            {
+              "key": "confirmed_offer_name",
+              "css_selector": "body > div.sliding-wrapper > div.ng-scope > section > div > div > div.details.double > h2",
+              "class": "title ng-binding",
+              "id": ""
+            }
+          ]
         },
         {
             "bank_page": [

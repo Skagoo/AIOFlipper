@@ -10,12 +10,14 @@ using TwoFactorAuthNet;
 using System.Text.RegularExpressions;
 using NLog;
 using OpenQA.Selenium.Interactions;
+using Protractor;
+using OpenQA.Selenium.Support.UI;
 
 namespace AIOFlipper
 {
     class Flipper
     {
-        private IWebDriver driver;
+        private NgWebDriver driver;
         private List<string> tabs;
 
         private static Logger logger;
@@ -53,11 +55,18 @@ namespace AIOFlipper
                 string offerCollectionSlot1ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][28]["css_selector"];
                 string offerCollectionSlot2ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][29]["css_selector"];
 
+                string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+                string offerItemNameElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][30]["css_selector"];
+                // Wait for the slot with the correct item name to be visible
+                driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+
                 // Open the slot.
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
 
-                Thread.Sleep(1500);
+                // Sleep to prevent collecting other slots
+                // Check if the correct slot was opened, else try again.
+                driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
 
                 try
                 {
@@ -65,28 +74,31 @@ namespace AIOFlipper
                     IWebElement offerAbortButtonElement = driver.FindElement(By.CssSelector(offerAbortButtonElementCsss), 20);
                     offerAbortButtonElement.Click();
 
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
 
                     // Click the "Ok" button to confirm the offer abortion.
                     IWebElement offerAbortConfirmOkElement = driver.FindElement(By.CssSelector(offerAbortConfirmOkElementCsss), 20);
                     offerAbortConfirmOkElement.Click();
 
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
 
                     // Click the "Ok" button on the "abort request acknowledged" pop-up.
                     IWebElement offerAbortAcknowledgedOkElement = driver.FindElement(By.CssSelector(offerAbortAcknowledgedOkElementCsss), 20);
                     offerAbortAcknowledgedOkElement.Click();
 
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
                 }
                 catch (NoSuchElementException)
                 {
                     // Slot was already aborted, so just collect
                 }
-                
+
+                IWebElement offerCollectionSlot1Element;
+
                 try
                 {
-                    IWebElement offerCollectionSlot2Element = driver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 5);
+                    offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                    IWebElement offerCollectionSlot2Element = driver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 0);
                     offerCollectionSlot2Element.Click();
                 }
                 catch (Exception)
@@ -94,15 +106,15 @@ namespace AIOFlipper
                     // There was only one collection slot.
                 }
 
-                IWebElement offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
                 offerCollectionSlot1Element.Click();
 
-                Thread.Sleep(750);
+                //Thread.Sleep(750);
 
                 // For safety try collecting the first slot again
                 try
                 {
-                    offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                    offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 0);
                     offerCollectionSlot1Element.Click();
                 }
                 catch (Exception)
@@ -110,7 +122,7 @@ namespace AIOFlipper
                     // There was only one collection slot.
                 }
 
-                Thread.Sleep(1500);
+                //Thread.Sleep(1500);
 
                 // This is just for safety, normaly we would be at the grand exchange page already.
                 OpenBank();
@@ -155,7 +167,7 @@ namespace AIOFlipper
                 IWebElement slotBuyButtonElement = driver.FindElement(By.CssSelector(slotBuyButtonElementCsss), 20);
                 slotBuyButtonElement.Click();
 
-                Thread.Sleep(1500);
+                //Thread.Sleep(1500);
 
                 bool itemFound = false;
                 int attemps = 1;
@@ -168,7 +180,7 @@ namespace AIOFlipper
                         buySearchElement.Clear();
                         buySearchElement.SendKeys(slot.ItemName);
 
-                        Thread.Sleep(1500);
+                        //Thread.Sleep(1500);
 
                         // Wait for list to appear (slow)
                         driver.FindElement(By.CssSelector(buySearchResultItemElementCsss.Replace("CHILD_NUMBER", "1")), 10);
@@ -205,7 +217,7 @@ namespace AIOFlipper
                     // Found the item in the list, click on it to open the buying page.
                     buySearchResultItemElement.Click();
 
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
 
                     string offerQuantityElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][9]["css_selector"];
                     string offerPricePerItemElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][10]["css_selector"];
@@ -214,22 +226,29 @@ namespace AIOFlipper
                     // Fill in the quantity.
                     IWebElement offerQuantityElement = driver.FindElement(By.CssSelector(offerQuantityElementCsss), 20);
                     offerQuantityElement.Clear();
-                    Thread.Sleep(500);
+                    //Thread.Sleep(500);
                     offerQuantityElement.SendKeys("1");
                     // Replace with | offerQuantityElement.SendKeys(slot.Item.BuyLimit.toString());
 
                     // Sleep to avoid the popup not presenting.
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
 
                     IWebElement offerPricePerItemElement = driver.FindElement(By.CssSelector(offerPricePerItemElementCsss), 20);
-                    offerPricePerItemElement.Clear();
-                    offerPricePerItemElement.SendKeys(slot.Value.ToString());
+                    do
+                    {
+                        offerPricePerItemElement.Clear();
+                        offerPricePerItemElement.SendKeys(slot.Value.ToString());
+                        Thread.Sleep(500);
+
+                    } while (offerPricePerItemElement.GetAttribute("value") != slot.Value.ToString());
+
+                    
                     // Sleep to avoid the popup not presenting.
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
                     offerPricePerItemElement.SendKeys(Keys.Enter);
 
                     // Sleep to avoid the popup not presenting.
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
 
                     try
                     {
@@ -268,8 +287,14 @@ namespace AIOFlipper
 
                     if (slotState == "complete buying" || slotState == "complete")
                     {
+
                         // Open the slot
                         string slotOpenElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][15]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+                        string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                        // Wait for the slot with the correct item name to be visible
+                        driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+
 
                         IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
                         slotOpenElement.Click();
@@ -360,6 +385,14 @@ namespace AIOFlipper
                 return slotState;
             }
             catch (DisconnectedFromRSCompanionException)
+            {
+                // Log
+                logger.Warn("Account has been disconnected. Attempting to reconnect");
+                Reconnect();
+                OpenGrandExchange();
+                return CheckSlotState(slotNumber);
+            }
+            catch (WebDriverException)
             {
                 // Log
                 logger.Warn("Account has been disconnected. Attempting to reconnect");
@@ -500,17 +533,27 @@ namespace AIOFlipper
                 string offerCollectionSlot1ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][28]["css_selector"];
                 string offerCollectionSlot2ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][29]["css_selector"];
 
-                Thread.Sleep(500);
+                string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+                string offerItemNameElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][30]["css_selector"];
+
+                // Wait for the slot with the correct item name to be visible
+                driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
                 // Open the slot.
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
 
-                Thread.Sleep(1500);
+                Thread.Sleep(1000);
 
+                // Sleep to prevent collecting other slots
+                // Check if the correct slot was opened, else try again.
+                driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
+
+                IWebElement offerCollectionSlot1Element;
                 try
                 {
-                    IWebElement offerCollectionSlot2Element = driver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 5);
+                    offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                    IWebElement offerCollectionSlot2Element = driver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 0);
                     offerCollectionSlot2Element.Click();
                 }
                 catch (Exception)
@@ -518,8 +561,11 @@ namespace AIOFlipper
                     // There was only one collection slot.
                 }
 
-                IWebElement offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
                 offerCollectionSlot1Element.Click();
+
+
+                
             }
             catch (DisconnectedFromRSCompanionException)
             {
@@ -539,6 +585,12 @@ namespace AIOFlipper
             catch (InvalidProgramException)
             {
                 // Error finding the element, load the bank and GE again and retry
+                OpenBank();
+                OpenGrandExchange();
+                CollectSlot(slot);
+            }
+            catch (StaleElementReferenceException)
+            {
                 OpenBank();
                 OpenGrandExchange();
                 CollectSlot(slot);
@@ -688,7 +740,7 @@ namespace AIOFlipper
 
         private void GoToRuneScapeCompanionPage()
         {
-            driver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", currentAccount.World));
+            driver.WrappedDriver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", currentAccount.World));
         }
 
         private void Login()
@@ -700,8 +752,8 @@ namespace AIOFlipper
 
             try
             {
-                IWebElement usernameElement = driver.FindElement(By.CssSelector(usernameElementCsss), 30);
-                IWebElement passwordElement = driver.FindElement(By.CssSelector(passwordElementCsss), 0);
+                IWebElement usernameElement = driver.WrappedDriver.FindElement(By.CssSelector(usernameElementCsss), 30);
+                IWebElement passwordElement = driver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
 
                 usernameElement.SendKeys(currentAccount.Email);
                 passwordElement.SendKeys(currentAccount.Password);
@@ -709,35 +761,16 @@ namespace AIOFlipper
 
                 TwoFactorAuth tfa = new TwoFactorAuth();
 
-                IWebElement authElement = driver.FindElement(By.CssSelector(authElementCsss), 20);
+                IWebElement authElement = driver.WrappedDriver.FindElement(By.CssSelector(authElementCsss), 20);
                 authElement.SendKeys("" + tfa.GetCode(currentAccount.AuthKey));
                 authElement.SendKeys(Keys.Enter);
 
-                IWebElement savePasswordNoElement = driver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
+                IWebElement savePasswordNoElement = driver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
                 savePasswordNoElement.Click();
             }
             catch (Exception)
             {
-                ////driver.Navigate().Refresh();
-                ////Reconnect();
-
-                //// Loading Issue, force the login form to show
-                //IWebElement loginFormDivElement = driver.FindElements(By.CssSelector("body.initial-load .ng-scope"))[1];
-                //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].setAttribute('style','display:initial;');", loginFormDivElement);
-
-                //// Loading Issue, force the login form to show
-                //IWebElement loginFormElement = driver.FindElement(By.ClassName("login ng-scope"));
-                //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].setAttribute('style','display:initial;');", loginFormElement);
-
-                //// Force the loading spinner to hide
-                //IWebElement loadingSpinnerElement = driver.FindElement(By.CssSelector("body.initial-load .spinner, body.loading .spinner"));
-                //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].setAttribute('style','display:none;');", loadingSpinnerElement);
-
-                ////driver.Navigate().Refresh();
-
-                //Login();
-
-                driver.Navigate().Refresh();
+                driver.WrappedDriver.Navigate().Refresh();
                 Console.Beep();
                 Login();
             }
@@ -773,12 +806,27 @@ namespace AIOFlipper
             try
             {
                 string geTabElementCsss = (string)Program.Elements["elements"][1]["menu_tabs"][0]["css_selector"];
+                string slotListElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][1]["css_selector"];
 
                 IWebElement geTabElement = driver.FindElement(By.CssSelector(geTabElementCsss), 10);
                 geTabElement.Click();
 
-                // Sleep for 5 seconds so the GE page can load successfuly.
-                Thread.Sleep(5000);
+                // Get the slots list element
+                IWebElement slotListElement = driver.FindElement(By.CssSelector(slotListElementCsss), 20);
+
+                //foreach (IWebElement child in slotListElement.FindElements(By.TagName("li")))
+                //{
+                //    // Wait for all slots to load properly
+                //    var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+                //    wait.Until(ExpectedConditions.ElementToBeClickable(child));
+                //}
+
+                // Wait for all slots to load properly
+                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+                wait.Until(ExpectedConditions.VisibilityOfAllElementsLocatedBy(By.TagName("li")));
+
+                // Sleep since the slot elements behave weird and this prevents the wrong slot being used.
+                Thread.Sleep(1000);
             }
             catch (DisconnectedFromRSCompanionException)
             {
@@ -794,55 +842,143 @@ namespace AIOFlipper
                 Reconnect();
                 OpenGrandExchange();
             }
+            catch (NoSuchElementException)
+            {
+                OpenBank();
+                OpenGrandExchange();
+            }
+            catch (TimeoutException)
+            {
+                Reconnect();
+                OpenGrandExchange();
+            }
         }
 
         private void Reconnect()
         {
-            // Get the current tab reference
-            string tabToClose = driver.CurrentWindowHandle;
-
-            // Close the tab
-            ((IJavaScriptExecutor)driver).ExecuteScript("window.close();");
-
-            // Focus the empty first tab
-            driver.SwitchTo().Window(driver.WindowHandles.First());
-
-            // Open a new tab
-            ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
-
-            // Get the new tabs reference
-            string newTab = null;
-
-            foreach (string tab in driver.WindowHandles)
+            try
             {
-                // Switch tab
-                driver.SwitchTo().Window(tab);
+                // Get the current tab reference
+                string tabToClose = driver.CurrentWindowHandle;
 
-                if (tab != driver.WindowHandles.First() && driver.Title != "RS Companion")
+                // Close the tab
+                ((IJavaScriptExecutor)driver).ExecuteScript("window.close();");
+
+                // Focus the empty first tab
+                driver.SwitchTo().Window(driver.WindowHandles.First());
+
+                // Open a new tab
+                ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+
+                // Get the new tabs reference
+                string newTab = null;
+
+                foreach (string tab in driver.WindowHandles)
                 {
-                    newTab = driver.CurrentWindowHandle;
-                    break;
-                }
-            }
+                    try
+                    {
+                        // Switch tab
+                        driver.SwitchTo().Window(tab);
 
-            // Replace the closed tab in the tabs list with the new tab
-            for (int i = 0; i < tabs.Count; i++)
+                        if (tab != driver.WindowHandles.First() && driver.WrappedDriver.Title != "RS Companion")
+                        {
+                            newTab = driver.CurrentWindowHandle;
+                            break;
+                        }
+                    }
+                    catch (NoSuchWindowException)
+                    {
+                        // The tab was not found?
+                        // ignore
+                    }
+                }
+
+                // Replace the closed tab in the tabs list with the new tab
+                for (int i = 0; i < tabs.Count; i++)
+                {
+                    if (tabs[i] == tabToClose)
+                    {
+                        tabs[i] = newTab;
+                    }
+                }
+
+                // Switch to the new tab
+                driver.SwitchTo().Window(newTab);
+
+                GoToRuneScapeCompanionPage();
+
+                Login();
+
+                // Log
+                logger.Warn("Account has been successfully reconnected");
+            }
+            catch (WebDriverException)
             {
-                if (tabs[i] == tabToClose)
+                // Webdriver crashed, start a new webdriver
+                driver.Quit();
+
+                // Instanciate the logger.
+                logger = LogManager.GetLogger("Flipper");
+
+                EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                driverService.HideCommandPromptWindow = true;
+
+                IWebDriver edgeDriver = new EdgeDriver(driverService);
+
+                logger.Debug("Started new edge driver");
+
+                // Configure timeouts (important since Protractor uses asynchronous client side scripts)
+                edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+
+                // Initialize the NgWebDriver
+                driver = new NgWebDriver(edgeDriver);
+
+                // Clear the old tabs list
+                tabs = new List<string>();
+
+                string activeAccountUsername = currentAccount.Username.ToString();
+                foreach (Account tempAccount in accounts)
                 {
-                    tabs[i] = newTab;
+                    // Set the currentAccount to tempAccount
+                    currentAccount = tempAccount;
+
+                    // Execute some JavaScript to open a new window
+                    ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+
+                    // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
+                    string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
+
+                    tabs.Add(newTab);
+
+                    // Switch our driver to the new tab's window handle
+                    driver.SwitchTo().Window(newTab);
+
+                    // Lets navigate to the RuneScape Companion web app in our new tab
+                    GoToRuneScapeCompanionPage();
+
+                    // Login the currentAccount
+                    Login();
+
+                    // Open the Grand Exchange page
+                    OpenGrandExchange();
+
                 }
+
+                // Switch to the active account's tab
+                for (int i = 0; i < accounts.Length; i++)
+                {
+                    if (accounts[i].Username == activeAccountUsername)
+                    {
+                        driver.SwitchTo().Window(tabs[i]);
+                        break;
+                    }
+                }
+                
+
+                // Log
+                logger.Warn("Account has been successfully reconnected");
+
             }
-
-            // Switch to the new tab
-            driver.SwitchTo().Window(newTab);
-
-            GoToRuneScapeCompanionPage();
-
-            Login();
-
-            // Log
-            logger.Warn("Account has been successfully reconnected");
         }
 
         private bool RemoveItemFromAvailableItems(string itemName)
@@ -887,8 +1023,6 @@ namespace AIOFlipper
                 IWebElement slotSellButtonElement = driver.FindElement(By.CssSelector(slotSellButtonElementCsss), 20);
                 slotSellButtonElement.Click();
 
-                Thread.Sleep(1500);
-
                 bool itemFound = false;
                 int attemps = 1;
                 do
@@ -898,7 +1032,7 @@ namespace AIOFlipper
                         // Enter the item name in the search bar and send "Enter" press to search.
                         IWebElement bankSearchElement = driver.FindElement(By.CssSelector(bankSearchElementCsss), 10);
                         bankSearchElement.Clear();
-                        Thread.Sleep(1500);
+                        //Thread.Sleep(1500);
                         bankSearchElement.SendKeys(slot.ItemName);
 
                         // Find the correct item in the list.
@@ -910,18 +1044,18 @@ namespace AIOFlipper
                         {
                             try
                             {
-                                Thread.Sleep(500);
+                                //Thread.Sleep(500);
                                 IWebElement bankSearchResultItemElement = driver.FindElement(By.CssSelector(bankSearchResultItemElementCsss), 10);
                                 bankSearchResultItemElement.Click();
                             }
                             catch (Exception)
                             {
-                                Thread.Sleep(500);
+                                //Thread.Sleep(500);
                                 IWebElement bankSearchResultItemElement = driver.FindElement(By.CssSelector(bankSearchResultItemElementCsss + " active"), 10);
                                 bankSearchResultItemElement.Click();
                             }
 
-                            Thread.Sleep(1500);
+                            Thread.Sleep(1000);
 
                             IWebElement bankSearchResultItemNameElement = driver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10);
                             searchResultItemName = bankSearchResultItemNameElement.Text;
@@ -936,6 +1070,22 @@ namespace AIOFlipper
                     {
                         throw new DisconnectedFromRSCompanionException();
                     }
+                    catch (NoSuchElementException)
+                    {
+                        // The offer probably sold while trying to abort, so change the slotstate to complete selling
+                        slot.SlotState = "complete selling";
+
+                        CheckUpdateItemAndSlot(slot.Number);
+
+                        // Write it as a sale
+                        couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, DateTime.Now));
+
+                        OpenGrandExchange();
+
+                        return;
+
+                        // Now the slotstate will be set to selling again, but on the next check it will be noticed as empty.
+                    }
                     catch (Exception)
                     {
                         // The item was not present. Making a new attempt to enter the name in the search bar.
@@ -948,7 +1098,7 @@ namespace AIOFlipper
                 {
                     try
                     {
-                        Thread.Sleep(500);
+                        //Thread.Sleep(500);
                         // Found the item in the list, click on the sell button to open the selling page.
                         IWebElement bankSearchResultItemSellElement = driver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss), 0);
                         bankSearchResultItemSellElement.Click();
@@ -956,13 +1106,13 @@ namespace AIOFlipper
                     catch (Exception)
                     {
                         // RuneScape Companion only showing stock market button and sell button so we need 2nd child instead of 3rd.
-                        Thread.Sleep(500);
+                        //Thread.Sleep(500);
                         IWebElement bankSearchResultItemSellElement = driver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss.Replace('3', '2')), 0);
                         bankSearchResultItemSellElement.Click();
                     }
 
 
-                    Thread.Sleep(1500);
+                    //Thread.Sleep(1500);
 
                     string offerQuantityElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][9]["css_selector"];
                     string offerPricePerItemElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][10]["css_selector"];
@@ -971,23 +1121,26 @@ namespace AIOFlipper
                     // Fill in the quantity.
                     IWebElement offerQuantityElement = driver.FindElement(By.CssSelector(offerQuantityElementCsss), 10);
                     offerQuantityElement.Clear();
-                    Thread.Sleep(500);
+                    //Thread.Sleep(500);
                     offerQuantityElement.SendKeys("1");
                     // Replace with | offerQuantityElement.SendKeys(slot.Item.BuyLimit.toString());
 
                     // Sleep to avoid the popup not presenting.
                     //Thread.Sleep(1500);
 
-                    IWebElement offerPricePerItemElement = driver.FindElement(By.CssSelector(offerPricePerItemElementCsss), 10);
-                    offerPricePerItemElement.Clear();
-                    Thread.Sleep(500);
-                    offerPricePerItemElement.SendKeys(slot.Value.ToString());
-                    // Sleep to avoid the popup not presenting.
-                    Thread.Sleep(1500);
+                    IWebElement offerPricePerItemElement = driver.FindElement(By.CssSelector(offerPricePerItemElementCsss), 20);
+                    do
+                    {
+                        offerPricePerItemElement.Clear();
+                        offerPricePerItemElement.SendKeys(slot.Value.ToString());
+                        Thread.Sleep(500);
+
+                    } while (offerPricePerItemElement.GetAttribute("value") != slot.Value.ToString());
+
                     offerPricePerItemElement.SendKeys(Keys.Enter);
 
                     // Sleep to avoid the popup not presenting.
-                    Thread.Sleep(1000);
+                    //Thread.Sleep(1000);
 
                     try
                     {
@@ -1027,6 +1180,10 @@ namespace AIOFlipper
                     {
                         // Open the slot
                         string slotOpenElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][15]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+                        string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                        // Wait for the slot with the correct item name to be visible
+                        driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
                         IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
                         slotOpenElement.Click();
@@ -1088,7 +1245,133 @@ namespace AIOFlipper
             {
                 OpenBank();
                 OpenGrandExchange();
-                SellItem(slot);
+
+                /*
+                 * The sell button was not found.
+                 *      Case 1: The wrong slot was collected before.
+                 *      Case 1 validation: Try to find the correct slot. If this is successfull continue with the solution.
+                 *      Case 1 solution: 
+                 *          Step 1: Try to collect the correct slot again.
+                 *          Step 2: Update the slotState.
+                 *          Step 3: Update the slotValue.
+                 *          Step 4: Try to sell the item in the slot again. (recursive call)
+                 *          Step 5: Update the slotState
+                 *          Step 6: Update the slot's time
+                 *          Step 7: Find out what wrong slot was collected by getting the slot state
+                 *                  If both the result of CheckSlotState is empty and the slot.State property is not empty, this is the slot we seek.
+                 *          Step 8: Sell the item in the slot that we just found.
+                 *              Step 8.1: Update the slotState
+                 *              Step 8.2: Update the slotValue
+                 *              Step 8.3: Try to sell the item in the slot again. (recursive call)
+                 *              Step 8.4: Update the slotState
+                 *              Step 8.5: // Update the slot's time
+                 *          
+                 *      Case 2: Something went wrong loading the grand exchange page.
+                 *      Case 2 solution:
+                 *          Step 1: Reload the Grand Exhange page.
+                 *          Step 2: Try to sell the item in the slot again. (recursive call)
+                */
+
+                #region Case 1
+                // Case 1 validation: Try to find the correct slot. If this is successfull continue with the solution.
+                bool caseOneValidated = false;
+                string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                try
+                {
+                    // Wait for the slot with the correct item name to be visible
+                    driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                    // The correct slot was found, set caseOnValidated to true to continue with the solution.
+                    caseOneValidated = true;
+                }
+                catch (NoSuchElementException)
+                {
+                    // The correct slot was not found, so case 1 was not validated.
+                    // do nothing
+                }
+
+                if (caseOneValidated)
+                {
+                    // Beep to alert for debugging.
+                    Console.Beep();
+                    // Case 1 solution
+                    // Step 1: Try to collect the correct slot again.
+                    CollectSlot(slot);
+
+                    // Case 1 solution
+                    // Step 2: Update the slotState
+                    slot.SlotState = "empty";
+
+                    // Case 1 solution
+                    // Step 3: Update the slotValue
+                    slot.Value = slot.GetItem().CurrentSellPrice;
+
+                    // Case 1 solution
+                    // Step 4: Try to sell the item in the slot again. (recursive call)
+                    SellItem(slot);
+
+                    // Case 1 solution
+                    // Step 5: Update the slotState
+                    slot.SlotState = "selling";
+
+                    // Case 1 solution
+                    // Step 6: // Update the slot's time
+                    slot.Time = DateTime.Now;
+
+                    // Case 1 solution
+                    // Step 7: Find out what wrong slot was collected by getting the slot state
+                    //         If both the result of CheckSlotState is empty and the slot.SlotState property is not empty, this is the slot we seek.
+                    foreach (Slot tempSlot in currentAccount.Slots)
+                    {
+                        string slotState = CheckSlotState(tempSlot.Number);
+                        if (slotState == "empty" && tempSlot.SlotState != "empty")
+                        {
+                            // Case 1 solution
+                            // Step 8: Sell the item in the slot that we just found.
+                            // Case 1 solution
+                            // Step 8.1: Update the slotState
+                            tempSlot.SlotState = "empty";
+
+                            // Case 1 solution
+                            // Step 8.2: Update the slotValue
+                            tempSlot.Value = tempSlot.GetItem().CurrentSellPrice;
+
+                            // Case 1 solution
+                            // Step 8.3: Try to sell the item in the slot again. (recursive call)
+                            SellItem(tempSlot);
+
+                            // Case 1 solution
+                            // Step 8.4: Update the slotState
+                            tempSlot.SlotState = "selling";
+
+                            // Case 1 solution
+                            // Step 8.5: // Update the slot's time
+                            tempSlot.Time = DateTime.Now;
+                        }
+                    }
+                }
+                #endregion
+
+                #region Case 2
+                else
+                {
+                    // Beep to alert for debugging.
+                    Console.Beep();
+                    // Case 2 solution:
+                    // Step 1: Reload the Grand Exhange page.
+                    OpenGrandExchange();
+
+                    // Case 2 solution:
+                    // Step 2: Try to sell the item in the slot again. (recursive call)
+                    SellItem(slot);
+                }
+                #endregion
+
+            }
+            catch (WebDriverException)
+            {
+                Reconnect();
+                OpenGrandExchange();
             }
         }
 
@@ -1139,28 +1422,18 @@ namespace AIOFlipper
             // Instanciate the logger.
             logger = LogManager.GetLogger("Flipper");
 
-            // Edge driver
             EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
 
-            driver = new EdgeDriver(driverService);
+            IWebDriver edgeDriver = new EdgeDriver(driverService);
 
             logger.Debug("Started new edge driver");
-            //End of Edge driver
 
-            //// Opera
-            //DriverService driverService = OperaDriverService.CreateDefaultService();
-            //driverService.HideCommandPromptWindow = true;
-            //driverService.Start();
+            // Configure timeouts (important since Protractor uses asynchronous client side scripts)
+            edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
 
-            //OperaOptions options = new OperaOptions();
-            //options.BinaryLocation = @"C:\Program Files\Opera\49.0.2725.64\opera.exe";
-            //options.AddArguments("--disable-notifications");
-
-            //driver = new RemoteWebDriver(driverService.ServiceUrl, options);
-
-            //// End of Opera
-
+            // Initialize the NgWebDriver
+            driver = new NgWebDriver(edgeDriver);
 
             foreach (Account tempAccount in accounts)
             {
@@ -1244,7 +1517,7 @@ namespace AIOFlipper
 
                     
 
-                    for (int timesToCheckSlots = 2; timesToCheckSlots > 0; timesToCheckSlots--)
+                    for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)
                     {
                         foreach (Slot slot in currentAccount.Slots)
                         {
@@ -1675,8 +1948,11 @@ namespace AIOFlipper
                     }
   
                     // Switch to bank back to GE, to avoid logging out.
-                    OpenBank();
-                    OpenGrandExchange();
+                    //OpenBank();
+                    //OpenGrandExchange();
+
+                    // Sleep to avoid flashing
+                    Thread.Sleep(1000);
                 }
 
                 long totalValue = 0;

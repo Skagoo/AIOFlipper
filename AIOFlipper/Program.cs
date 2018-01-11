@@ -20,8 +20,6 @@ namespace AIOFlipper
         private static Queue<Account> updateAccountQueue;
         private static Queue<Item> updateItemQueue;
 
-        private static Thread dataUpdaterThread;
-
         private static CouchPortal couchClient;
 
 

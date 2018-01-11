@@ -246,7 +246,7 @@ namespace AIOFlipper
                 item.FlipchatBuyPrice = long.Parse(flipchatMarginsPrices.Dequeue()) * 1000;
                 item.FlipchatSellPrice = long.Parse(flipchatMarginsPrices.Dequeue()) * 1000;
 
-                if (checkBoxForce.Checked)
+                if (checkBoxForce.Checked && item.Tier == 3)
                 {
                     item.CurrentBuyPrice = item.FlipchatBuyPrice;
                     item.CurrentSellPrice = item.FlipchatSellPrice;
