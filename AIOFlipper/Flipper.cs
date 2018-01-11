@@ -56,7 +56,7 @@ namespace AIOFlipper
                 string offerCollectionSlot2ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][29]["css_selector"];
 
                 string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
-
+                string offerItemNameElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][30]["css_selector"];
                 // Wait for the slot with the correct item name to be visible
                 driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
@@ -64,7 +64,9 @@ namespace AIOFlipper
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
 
-                //Thread.Sleep(1500);
+                // Sleep to prevent collecting other slots
+                // Check if the correct slot was opened, else try again.
+                driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
 
                 try
                 {
@@ -934,8 +936,7 @@ namespace AIOFlipper
                 // Clear the old tabs list
                 tabs = new List<string>();
 
-                string tabOfActiveAccount = null;
-                string activeAccountUsername = currentAccount.Username;
+                string activeAccountUsername = currentAccount.Username.ToString();
                 foreach (Account tempAccount in accounts)
                 {
                     // Set the currentAccount to tempAccount
@@ -961,14 +962,18 @@ namespace AIOFlipper
                     // Open the Grand Exchange page
                     OpenGrandExchange();
 
-                    if (tempAccount.Username == activeAccountUsername)
-                    {
-                        tabOfActiveAccount = newTab;
-                    }
                 }
 
                 // Switch to the active account's tab
-                driver.SwitchTo().Window(tabOfActiveAccount);
+                for (int i = 0; i < accounts.Length; i++)
+                {
+                    if (accounts[i].Username == activeAccountUsername)
+                    {
+                        driver.SwitchTo().Window(tabs[i]);
+                        break;
+                    }
+                }
+                
 
                 // Log
                 logger.Warn("Account has been successfully reconnected");
@@ -1018,13 +1023,10 @@ namespace AIOFlipper
                 IWebElement slotSellButtonElement = driver.FindElement(By.CssSelector(slotSellButtonElementCsss), 20);
                 slotSellButtonElement.Click();
 
-                //Thread.Sleep(1500);
-
                 bool itemFound = false;
                 int attemps = 1;
                 do
                 {
-                    //return;
                     try
                     {
                         // Enter the item name in the search bar and send "Enter" press to search.
@@ -1053,7 +1055,7 @@ namespace AIOFlipper
                                 bankSearchResultItemElement.Click();
                             }
 
-                            //Thread.Sleep(1500);
+                            Thread.Sleep(1000);
 
                             IWebElement bankSearchResultItemNameElement = driver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10);
                             searchResultItemName = bankSearchResultItemNameElement.Text;
@@ -1067,6 +1069,22 @@ namespace AIOFlipper
                     catch (DisconnectedFromRSCompanionException)
                     {
                         throw new DisconnectedFromRSCompanionException();
+                    }
+                    catch (NoSuchElementException)
+                    {
+                        // The offer probably sold while trying to abort, so change the slotstate to complete selling
+                        slot.SlotState = "complete selling";
+
+                        CheckUpdateItemAndSlot(slot.Number);
+
+                        // Write it as a sale
+                        couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, DateTime.Now));
+
+                        OpenGrandExchange();
+
+                        return;
+
+                        // Now the slotstate will be set to selling again, but on the next check it will be noticed as empty.
                     }
                     catch (Exception)
                     {
@@ -1227,7 +1245,133 @@ namespace AIOFlipper
             {
                 OpenBank();
                 OpenGrandExchange();
-                SellItem(slot);
+
+                /*
+                 * The sell button was not found.
+                 *      Case 1: The wrong slot was collected before.
+                 *      Case 1 validation: Try to find the correct slot. If this is successfull continue with the solution.
+                 *      Case 1 solution: 
+                 *          Step 1: Try to collect the correct slot again.
+                 *          Step 2: Update the slotState.
+                 *          Step 3: Update the slotValue.
+                 *          Step 4: Try to sell the item in the slot again. (recursive call)
+                 *          Step 5: Update the slotState
+                 *          Step 6: Update the slot's time
+                 *          Step 7: Find out what wrong slot was collected by getting the slot state
+                 *                  If both the result of CheckSlotState is empty and the slot.State property is not empty, this is the slot we seek.
+                 *          Step 8: Sell the item in the slot that we just found.
+                 *              Step 8.1: Update the slotState
+                 *              Step 8.2: Update the slotValue
+                 *              Step 8.3: Try to sell the item in the slot again. (recursive call)
+                 *              Step 8.4: Update the slotState
+                 *              Step 8.5: // Update the slot's time
+                 *          
+                 *      Case 2: Something went wrong loading the grand exchange page.
+                 *      Case 2 solution:
+                 *          Step 1: Reload the Grand Exhange page.
+                 *          Step 2: Try to sell the item in the slot again. (recursive call)
+                */
+
+                #region Case 1
+                // Case 1 validation: Try to find the correct slot. If this is successfull continue with the solution.
+                bool caseOneValidated = false;
+                string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
+
+                try
+                {
+                    // Wait for the slot with the correct item name to be visible
+                    driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                    // The correct slot was found, set caseOnValidated to true to continue with the solution.
+                    caseOneValidated = true;
+                }
+                catch (NoSuchElementException)
+                {
+                    // The correct slot was not found, so case 1 was not validated.
+                    // do nothing
+                }
+
+                if (caseOneValidated)
+                {
+                    // Beep to alert for debugging.
+                    Console.Beep();
+                    // Case 1 solution
+                    // Step 1: Try to collect the correct slot again.
+                    CollectSlot(slot);
+
+                    // Case 1 solution
+                    // Step 2: Update the slotState
+                    slot.SlotState = "empty";
+
+                    // Case 1 solution
+                    // Step 3: Update the slotValue
+                    slot.Value = slot.GetItem().CurrentSellPrice;
+
+                    // Case 1 solution
+                    // Step 4: Try to sell the item in the slot again. (recursive call)
+                    SellItem(slot);
+
+                    // Case 1 solution
+                    // Step 5: Update the slotState
+                    slot.SlotState = "selling";
+
+                    // Case 1 solution
+                    // Step 6: // Update the slot's time
+                    slot.Time = DateTime.Now;
+
+                    // Case 1 solution
+                    // Step 7: Find out what wrong slot was collected by getting the slot state
+                    //         If both the result of CheckSlotState is empty and the slot.SlotState property is not empty, this is the slot we seek.
+                    foreach (Slot tempSlot in currentAccount.Slots)
+                    {
+                        string slotState = CheckSlotState(tempSlot.Number);
+                        if (slotState == "empty" && tempSlot.SlotState != "empty")
+                        {
+                            // Case 1 solution
+                            // Step 8: Sell the item in the slot that we just found.
+                            // Case 1 solution
+                            // Step 8.1: Update the slotState
+                            tempSlot.SlotState = "empty";
+
+                            // Case 1 solution
+                            // Step 8.2: Update the slotValue
+                            tempSlot.Value = tempSlot.GetItem().CurrentSellPrice;
+
+                            // Case 1 solution
+                            // Step 8.3: Try to sell the item in the slot again. (recursive call)
+                            SellItem(tempSlot);
+
+                            // Case 1 solution
+                            // Step 8.4: Update the slotState
+                            tempSlot.SlotState = "selling";
+
+                            // Case 1 solution
+                            // Step 8.5: // Update the slot's time
+                            tempSlot.Time = DateTime.Now;
+                        }
+                    }
+                }
+                #endregion
+
+                #region Case 2
+                else
+                {
+                    // Beep to alert for debugging.
+                    Console.Beep();
+                    // Case 2 solution:
+                    // Step 1: Reload the Grand Exhange page.
+                    OpenGrandExchange();
+
+                    // Case 2 solution:
+                    // Step 2: Try to sell the item in the slot again. (recursive call)
+                    SellItem(slot);
+                }
+                #endregion
+
+            }
+            catch (WebDriverException)
+            {
+                Reconnect();
+                OpenGrandExchange();
             }
         }
 
@@ -1373,7 +1517,7 @@ namespace AIOFlipper
 
                     
 
-                    for (int timesToCheckSlots = 2; timesToCheckSlots > 0; timesToCheckSlots--)
+                    for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)
                     {
                         foreach (Slot slot in currentAccount.Slots)
                         {
