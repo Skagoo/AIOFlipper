@@ -29,16 +29,20 @@ namespace AIOFlipper
         [JsonProperty("profit")]
         public long Profit { get; set; }
 
+        [JsonProperty("tier")]
+        public long Tier { get; set; }
+
         [JsonProperty("date")]
         public DateTime Date { get; set; }
 
-        public Sale(string username, string itemName, long boughtFor, long soldFor, long profit, DateTime date)
+        public Sale(string username, string itemName, long boughtFor, long soldFor, long profit, long tier, DateTime date)
         {
             Username = username;
             ItemName = itemName;
             BoughtFor = boughtFor;
             SoldFor = soldFor;
             Profit = profit;
+            Tier = tier;
             Date = date;
         }
     }

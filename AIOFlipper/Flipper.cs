@@ -327,6 +327,13 @@ namespace AIOFlipper
 
                         // Update the item
                         UpdateItem(item);
+
+                        // Beep for debugging
+                        Console.Beep(800, 2000);
+
+                        // Open the GE
+                        OpenBank();
+                        OpenGrandExchange();
                     }
                 }
                 else
@@ -776,6 +783,39 @@ namespace AIOFlipper
             }
         }
 
+        private void Login(Account account)
+        {
+            string usernameElementCsss = (string)Program.Elements["elements"][0]["login_form"][0]["css_selector"];
+            string passwordElementCsss = (string)Program.Elements["elements"][0]["login_form"][1]["css_selector"];
+            string authElementCsss = (string)Program.Elements["elements"][0]["login_form"][2]["css_selector"];
+            string savePasswordNoElementCsss = (string)Program.Elements["elements"][0]["login_form"][3]["css_selector"];
+
+            try
+            {
+                IWebElement usernameElement = driver.WrappedDriver.FindElement(By.CssSelector(usernameElementCsss), 30);
+                IWebElement passwordElement = driver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
+
+                usernameElement.SendKeys(account.Email);
+                passwordElement.SendKeys(account.Password);
+                passwordElement.SendKeys(Keys.Enter);
+
+                TwoFactorAuth tfa = new TwoFactorAuth();
+
+                IWebElement authElement = driver.WrappedDriver.FindElement(By.CssSelector(authElementCsss), 20);
+                authElement.SendKeys("" + tfa.GetCode(account.AuthKey));
+                authElement.SendKeys(Keys.Enter);
+
+                IWebElement savePasswordNoElement = driver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
+                savePasswordNoElement.Click();
+            }
+            catch (Exception)
+            {
+                driver.WrappedDriver.Navigate().Refresh();
+                Console.Beep();
+                Login(account);
+            }
+        }
+
         private void OpenBank()
         {
             try
@@ -936,12 +976,8 @@ namespace AIOFlipper
                 // Clear the old tabs list
                 tabs = new List<string>();
 
-                string activeAccountUsername = currentAccount.Username.ToString();
                 foreach (Account tempAccount in accounts)
                 {
-                    // Set the currentAccount to tempAccount
-                    currentAccount = tempAccount;
-
                     // Execute some JavaScript to open a new window
                     ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
@@ -957,28 +993,159 @@ namespace AIOFlipper
                     GoToRuneScapeCompanionPage();
 
                     // Login the currentAccount
-                    Login();
+                    Login(tempAccount);
+
+                    // Open the Grand Exchange page
+                    OpenGrandExchange();
+
+                }               
+
+                // Log
+                logger.Warn("Account has been successfully reconnected");
+
+            }
+
+            // Reslove issue with wrong tab assignment
+            // Reslove issue with wrong tab assignment
+            // Aassign the correct tabs for the accounts
+            // We do this based on the world parameter in the url
+            // Start J on 1 since the tab with index 0 will be the blank starting tab
+            try
+            {
+                for (int j = 1; j < driver.WindowHandles.Count; j++)
+                {
+                    // Switch to the tab
+                    driver.SwitchTo().Window(driver.WindowHandles[j]);
+
+                    // Get the world from the url
+                    string url = driver.Url;
+                    string worldParameter = url.Split('/')[3];
+                    long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
+
+                    // Get the matching account based on the world
+                    for (int k = 0; k < accounts.Length; k++)
+                    {
+                        if (accounts[k].World == world)
+                        {
+                            // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
+                            tabs[k] = driver.CurrentWindowHandle;
+                        }
+                    }
+                }
+
+                // Switch to the active account's tab
+                for (int i = 0; i < accounts.Length; i++)
+                {
+                    if (accounts[i].Username == currentAccount.Username)
+                    {
+                        driver.SwitchTo().Window(tabs[i]);
+                        break;
+                    }
+                }
+            }
+            catch(WebDriverTimeoutException)
+            {
+                // Webdriver crashed, start a new webdriver
+                driver.Quit();
+
+                // Instanciate the logger.
+                logger = LogManager.GetLogger("Flipper");
+
+                EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                driverService.HideCommandPromptWindow = true;
+
+                IWebDriver edgeDriver = new EdgeDriver(driverService);
+
+                logger.Debug("Started new edge driver");
+
+                // Configure timeouts (important since Protractor uses asynchronous client side scripts)
+                edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+
+                // Initialize the NgWebDriver
+                driver = new NgWebDriver(edgeDriver);
+
+                // Clear the old tabs list
+                tabs = new List<string>();
+
+                foreach (Account tempAccount in accounts)
+                {
+                    // Execute some JavaScript to open a new window
+                    ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+
+                    // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
+                    string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
+
+                    tabs.Add(newTab);
+
+                    // Switch our driver to the new tab's window handle
+                    driver.SwitchTo().Window(newTab);
+
+                    // Lets navigate to the RuneScape Companion web app in our new tab
+                    GoToRuneScapeCompanionPage();
+
+                    // Login the currentAccount
+                    Login(tempAccount);
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
 
                 }
 
-                // Switch to the active account's tab
-                for (int i = 0; i < accounts.Length; i++)
+                // Log
+                logger.Warn("Account has been successfully reconnected");
+            }
+            catch (TimeoutException)
+            {
+                // Webdriver crashed, start a new webdriver
+                driver.Quit();
+
+                // Instanciate the logger.
+                logger = LogManager.GetLogger("Flipper");
+
+                EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                driverService.HideCommandPromptWindow = true;
+
+                IWebDriver edgeDriver = new EdgeDriver(driverService);
+
+                logger.Debug("Started new edge driver");
+
+                // Configure timeouts (important since Protractor uses asynchronous client side scripts)
+                edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+
+                // Initialize the NgWebDriver
+                driver = new NgWebDriver(edgeDriver);
+
+                // Clear the old tabs list
+                tabs = new List<string>();
+
+                foreach (Account tempAccount in accounts)
                 {
-                    if (accounts[i].Username == activeAccountUsername)
-                    {
-                        driver.SwitchTo().Window(tabs[i]);
-                        break;
-                    }
+                    // Execute some JavaScript to open a new window
+                    ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+
+                    // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
+                    string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
+
+                    tabs.Add(newTab);
+
+                    // Switch our driver to the new tab's window handle
+                    driver.SwitchTo().Window(newTab);
+
+                    // Lets navigate to the RuneScape Companion web app in our new tab
+                    GoToRuneScapeCompanionPage();
+
+                    // Login the currentAccount
+                    Login(tempAccount);
+
+                    // Open the Grand Exchange page
+                    OpenGrandExchange();
+
                 }
-                
 
                 // Log
                 logger.Warn("Account has been successfully reconnected");
-
             }
+
         }
 
         private bool RemoveItemFromAvailableItems(string itemName)
@@ -1078,7 +1245,7 @@ namespace AIOFlipper
                         CheckUpdateItemAndSlot(slot.Number);
 
                         // Write it as a sale
-                        couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, DateTime.Now));
+                        couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, slot.GetItem().Tier, DateTime.Now));
 
                         OpenGrandExchange();
 
@@ -1213,6 +1380,9 @@ namespace AIOFlipper
 
                         // Update the item
                         UpdateItem(item);
+
+                        // Beep for debugging
+                        Console.Beep(800, 2000);
 
                         // Open the GE
                         OpenBank();
@@ -1487,6 +1657,17 @@ namespace AIOFlipper
                     {
                         // Get the correct tab
                         driver.SwitchTo().Window(tabs[i]);
+
+                        // Get the world from the url
+                        string url = driver.Url;
+                        string worldParameter = url.Split('/')[3];
+                        long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
+
+                        if (currentAccount.World != world)
+                        {
+                            // If the worlds don't match, the wrong window is open, so throw an exeption.
+                            throw new NoSuchWindowException();
+                        }
                     }
                     catch (NoSuchWindowException)
                     {
@@ -1852,7 +2033,7 @@ namespace AIOFlipper
                                             slot.Number
                                         );
 
-                                        couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, DateTime.Now));
+                                        couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, slot.GetItem().Tier, DateTime.Now));
 
                                         // Update the slotState
                                         slot.SlotState = "empty";
