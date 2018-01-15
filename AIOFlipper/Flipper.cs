@@ -1,7 +1,5 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
-using OpenQA.Selenium.Opera;
-using OpenQA.Selenium.Remote;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +7,6 @@ using System.Threading;
 using TwoFactorAuthNet;
 using System.Text.RegularExpressions;
 using NLog;
-using OpenQA.Selenium.Interactions;
 using Protractor;
 using OpenQA.Selenium.Support.UI;
 

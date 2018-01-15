@@ -1,11 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AIOFlipper
 {
@@ -77,32 +73,23 @@ namespace AIOFlipper
             }
             catch (Exception)
             {
-                bool hasInternetConnectivity = CheckInternetConnectivity();
                 int internetCheckingDurationInSeconds = 600;
 
-                while (!hasInternetConnectivity && internetCheckingDurationInSeconds > 0)
+                while (!CheckInternetConnectivity() && internetCheckingDurationInSeconds > 0)
                 {
-                    hasInternetConnectivity = CheckInternetConnectivity();
                     internetCheckingDurationInSeconds--;
                 }
 
-                if (hasInternetConnectivity)
+                if (CheckInternetConnectivity())
                 {
-                    try
+                    // Check if the currentAccount has been disconnected. If so throw new DisconnectedFromRSCompanionException.
+                    if (CheckAccountDisconnected(driver))
                     {
-                        return driver.FindElement(by);
+                        throw new DisconnectedFromRSCompanionException();
                     }
-                    catch (NoSuchElementException e)
+                    else
                     {
-                        // Check if the currentAccount has been disconnected. If so throw new DisconnectedFromRSCompanionException.
-                        if (CheckAccountDisconnected(driver))
-                        {
-                            throw new DisconnectedFromRSCompanionException();
-                        }
-                        else
-                        {
-                            throw e;
-                        }
+                        throw new NoSuchElementException();
                     }
 
                 }

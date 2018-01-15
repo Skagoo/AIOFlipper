@@ -4,7 +4,6 @@ using System.Windows.Forms;
 using System.Threading;
 using Newtonsoft.Json.Linq;
 using System.IO;
-using Chesterfield;
 
 namespace AIOFlipper
 {
@@ -20,9 +19,6 @@ namespace AIOFlipper
         private static Queue<Account> updateAccountQueue;
         private static Queue<Item> updateItemQueue;
 
-        private static CouchPortal couchClient;
-
-
         [STAThread]
         static void Main()
         {
@@ -32,9 +28,6 @@ namespace AIOFlipper
             // Initialize the update queues.
             updateAccountQueue = new Queue<Account>();
             updateItemQueue = new Queue<Item>();
-
-            // Initialize the CouchDB client
-            couchClient = new CouchPortal();
 
             form = new Form1();
 
@@ -78,12 +71,14 @@ namespace AIOFlipper
         {
             get
             {
-                return couchClient.GetAccounts();
+                CouchPortal couchPortal = new CouchPortal();
+                return couchPortal.GetAccounts();
             }
 
             set
             {
-                couchClient.UpdateAccounts(value);
+                CouchPortal couchPortal = new CouchPortal();
+                couchPortal.UpdateAccounts(value);
             }
         }
 
@@ -91,12 +86,14 @@ namespace AIOFlipper
         {
             get
             {
-                return couchClient.GetItems();
+                CouchPortal couchPortal = new CouchPortal();
+                return couchPortal.GetItems();
             }
 
             set
             {
-                couchClient.UpdateItems(value);
+                CouchPortal couchPortal = new CouchPortal();
+                couchPortal.UpdateItems(value);
             }
         }
 

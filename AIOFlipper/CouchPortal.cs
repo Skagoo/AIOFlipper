@@ -1,28 +1,23 @@
 ﻿using Chesterfield;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AIOFlipper
 {
     class CouchPortal: CouchClient
     {
-        private CouchClient couchClient;
-
         private string accountsDB = "aio_flipper_accounts";
         private string itemsDB = "aio_flipper_items";
         private string salesDB = "aio_flipper_sales";
 
         public CouchPortal() : base()
         {
-            couchClient = new CouchClient();
         }
 
         public void UpdateAccounts(Account[] accounts)
         {
+            CouchClient couchClient = new CouchClient();
+
             string docId = "accounts-" + DateTime.Today.ToString("yyyy-MM-dd");
 
             CouchDatabase db = couchClient.GetDatabase(accountsDB);
@@ -45,10 +40,14 @@ namespace AIOFlipper
             token.Replace(JToken.Parse(Serialize.ToJson(accounts)));
 
             db.UpdateDocument(doc);
+
+            couchClient = null;
         }
 
         public Account[] GetAccounts()
         {
+            CouchClient couchClient = new CouchClient();
+
             string docId = "accounts-" + DateTime.Today.ToString("yyyy-MM-dd");
 
             CouchDatabase db = couchClient.GetDatabase(accountsDB);
@@ -65,13 +64,17 @@ namespace AIOFlipper
 
                 // Get the docment from db
                 doc = db.GetDocument<JDocument>(docId);
-            }            
+            }
+
+            couchClient = null;
 
             return Account.FromJson(doc.GetValue("accounts").ToString());
         }
 
         private void CreateTodaysAccountsDoc()
         {
+            CouchClient couchClient = new CouchClient();
+
             string docId = "accounts-" + DateTime.Today.ToString("yyyy-MM-dd");
 
             CouchDatabase db = couchClient.GetDatabase(accountsDB);
@@ -94,10 +97,14 @@ namespace AIOFlipper
 
             // Create the document with the new id
             db.CreateDocument(doc);
+
+            couchClient = null;
         }
 
         public void UpdateItems(Item[] items)
         {
+            CouchClient couchClient = new CouchClient();
+
             CouchDatabase db = couchClient.GetDatabase(itemsDB);
             JDocument doc = db.GetDocument<JDocument>("items");
 
@@ -105,20 +112,30 @@ namespace AIOFlipper
             token.Replace(JToken.Parse(Serialize.ToJson(items)));
 
             db.UpdateDocument(doc);
+
+            couchClient = null;
         }
 
         public Item[] GetItems()
         {
+            CouchClient couchClient = new CouchClient();
+
             CouchDatabase db = couchClient.GetDatabase(itemsDB);
             JDocument doc = db.GetDocument<JDocument>("items");
+
+            couchClient = null;
 
             return Item.FromJson(doc.GetValue("items").ToString());
         }
 
         public void WriteSale(Sale sale)
         {
+            CouchClient couchClient = new CouchClient();
+
             CouchDatabase db = couchClient.GetDatabase(salesDB);
             db.CreateDocument(Serialize.ToJson(sale));
+
+            couchClient = null;
         }
     }
 }
