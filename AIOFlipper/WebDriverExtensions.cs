@@ -120,7 +120,14 @@ namespace AIOFlipper
 
         private static bool CheckAccountDisconnected(IWebDriver driver)
         {
-            return driver.Url.Contains("login");
+            try
+            {
+                return driver.Url.Contains("login");
+            }
+            catch (WebDriverException)
+            {
+                throw new DisconnectedFromRSCompanionException();
+            }
         }
     }
 }

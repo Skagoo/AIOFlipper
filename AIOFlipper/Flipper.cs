@@ -43,6 +43,7 @@ namespace AIOFlipper
         // Methods
         private void AbortSlot(Slot slot)
         {
+            logger.Debug("AbortSlot(Slot slot)\t| Entered AbortSlot(Slot slot)");
             try
             {
                 string slotOpenElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][15]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
@@ -51,106 +52,183 @@ namespace AIOFlipper
                 string offerAbortAcknowledgedOkElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][27]["css_selector"];
                 string offerCollectionSlot1ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][28]["css_selector"];
                 string offerCollectionSlot2ElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][29]["css_selector"];
-
                 string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
                 string offerItemNameElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][30]["css_selector"];
+
                 // Wait for the slot with the correct item name to be visible
+                logger.Debug("AbortSlot(Slot slot)\t| Waiting for the slot with the correct item name to be visible");
                 driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                 // Open the slot.
+                logger.Debug("AbortSlot(Slot slot)\t| Searching for element to open slot");
                 IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
+                logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+                logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to open slot");
                 slotOpenElement.Click();
+                logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
-                // Sleep to prevent collecting other slots
                 // Check if the correct slot was opened, else try again.
+                logger.Debug("AbortSlot(Slot slot)\t| Checking if correct slot was opened");
                 driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
+                logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                 try
                 {
                     // Click the "Abort" button.
+                    logger.Debug("AbortSlot(Slot slot)\t| Searching for element to abort the offer");
                     IWebElement offerAbortButtonElement = driver.FindElement(By.CssSelector(offerAbortButtonElementCsss), 20);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+                    logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to abort the offer");
                     offerAbortButtonElement.Click();
-
-                    //Thread.Sleep(1500);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                     // Click the "Ok" button to confirm the offer abortion.
+                    logger.Debug("AbortSlot(Slot slot)\t| Searching for element to confirm the offer abortion");
                     IWebElement offerAbortConfirmOkElement = driver.FindElement(By.CssSelector(offerAbortConfirmOkElementCsss), 20);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+                    logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to confirm the offer abortion");
                     offerAbortConfirmOkElement.Click();
-
-                    //Thread.Sleep(1500);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                     // Click the "Ok" button on the "abort request acknowledged" pop-up.
+                    logger.Debug("AbortSlot(Slot slot)\t| Searching for element to accept the pop-up");
                     IWebElement offerAbortAcknowledgedOkElement = driver.FindElement(By.CssSelector(offerAbortAcknowledgedOkElementCsss), 20);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+                    logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to accept the pop-up");
                     offerAbortAcknowledgedOkElement.Click();
-
-                    //Thread.Sleep(1500);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                 }
-                catch (NoSuchElementException)
+                catch (NoSuchElementException e)
                 {
                     // Slot was already aborted, so just collect
+                    logger.Debug(e, "AbortSlot(Slot slot)\t| Slot was already aborted");
                 }
 
                 IWebElement offerCollectionSlot1Element;
 
                 try
                 {
+                    // Try to find the first collection slot
+                    logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the first collection slot");
                     offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+
+                    // Try to find the second collection slot
+                    logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the second collection slot");
                     IWebElement offerCollectionSlot2Element = driver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 0);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+                    logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to collect the second collection slot");
                     offerCollectionSlot2Element.Click();
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     // There was only one collection slot.
+                    logger.Debug(e, "AbortSlot(Slot slot)\t| There was only one collection slot");
                 }
 
+                // Try to find the first collection slot
+                logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the first collection slot");
                 offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+                logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to collect the first collection slot");
                 offerCollectionSlot1Element.Click();
-
-                //Thread.Sleep(750);
+                logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                 // For safety try collecting the first slot again
+                logger.Debug("AbortSlot(Slot slot)\t| For safety try collecting the first slot again");
                 try
                 {
+                    logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the first collection slot");
                     offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 0);
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
+                    logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to collect the first collection slot");
                     offerCollectionSlot1Element.Click();
+                    logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                 }
                 catch (Exception)
                 {
                     // There was only one collection slot.
+                    logger.Debug("AbortSlot(Slot slot)\t| There was only one collection slot");
                 }
 
-                //Thread.Sleep(1500);
-
                 // This is just for safety, normaly we would be at the grand exchange page already.
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenBank()");
                 OpenBank();
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenGrandExchange()");
                 OpenGrandExchange();
             }
-            catch (DisconnectedFromRSCompanionException)
+            catch (DisconnectedFromRSCompanionException e)
             {
-                // Log
-                logger.Warn("Account has been disconnected. Attempting to reconnect");
+                logger.Debug(e, "AbortSlot(Slot slot)\t| Account has been disconnected");
+
+                // Reconnect
+                logger.Debug("AbortSlot(Slot slot)\t| Calling Reconnect()");
                 Reconnect();
+
+                // Open Grand Exchange
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenGrandExchange()");
                 OpenGrandExchange();
+
+                // Retry aborting the slot (Recursive call)
+                logger.Debug("AbortSlot(Slot slot)\t| Calling AbortSlot(slot) (recursive call)");
                 AbortSlot(slot);
             }
-            catch (NoSuchElementException)
+            catch (NoSuchElementException e)
             {
-                // Error finding the element, load the bank and GE again and retry
+                logger.Debug(e, "AbortSlot(Slot slot)\t| Element was not found");
+
+                // Open Bank
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenBank()");
                 OpenBank();
+
+                // Open Grand Exchange
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenGrandExchange()");
                 OpenGrandExchange();
+
+                // Retry aborting the slot (Recursive call)
+                logger.Debug("AbortSlot(Slot slot)\t| Calling AbortSlot(slot) (recursive call)");
                 AbortSlot(slot);
             }
-            catch (InvalidOperationException)
+            catch (StaleElementReferenceException e)
             {
-                // Error finding the element, load the bank and GE again and retry
+                logger.Debug(e, "AbortSlot(Slot slot)\t| Stale element");
+
+                // Open Bank
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenBank()");
                 OpenBank();
+
+                // Open Grand Exchange
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenGrandExchange()");
                 OpenGrandExchange();
+
+                // Retry aborting the slot (Recursive call)
+                logger.Debug("AbortSlot(Slot slot)\t| Calling AbortSlot(slot) (recursive call)");
                 AbortSlot(slot);
             }
+            catch (InvalidOperationException e)
+            {
+                logger.Debug(e, "AbortSlot(Slot slot)\t| Invalid operation");
+
+                // Open Bank
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenBank()");
+                OpenBank();
+
+                // Open Grand Exchange
+                logger.Debug("AbortSlot(Slot slot)\t| Calling OpenGrandExchange()");
+                OpenGrandExchange();
+
+                // Retry aborting the slot (Recursive call)
+                logger.Debug("AbortSlot(Slot slot)\t| Calling AbortSlot(slot) (recursive call)");
+                AbortSlot(slot);
+            }
+            logger.Debug("AbortSlot(Slot slot)\t| Leaving AbortSlot(Slot slot)");
         }
 
         private void BuyItem(Slot slot)
         {
+            logger.Debug("BuyItem(Slot slot)\t| Entered BuyItem(Slot slot)");
             try
             {
                 string slotBuyButtonElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][7]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
@@ -161,10 +239,12 @@ namespace AIOFlipper
                 IWebElement buySearchResultItemElement = null;
 
                 // Click the "Buy" button of the slot.
+                logger.Debug("BuyItem(Slot slot)\t| Searching for element to buy item in slot");
                 IWebElement slotBuyButtonElement = driver.FindElement(By.CssSelector(slotBuyButtonElementCsss), 20);
+                logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
+                logger.Debug("BuyItem(Slot slot)\t| Trying to click the element to buy item in slot");
                 slotBuyButtonElement.Click();
-
-                //Thread.Sleep(1500);
+                logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
 
                 bool itemFound = false;
                 int attemps = 1;
@@ -173,19 +253,26 @@ namespace AIOFlipper
                     try
                     {
                         // Enter the item name in the search bar.
+                        logger.Debug("BuyItem(Slot slot)\t| Searching for element to search item to buy");
                         IWebElement buySearchElement = driver.FindElement(By.CssSelector(buySearchElementCsss), 20);
+                        logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
+                        logger.Debug("BuyItem(Slot slot)\t| Trying to clear the text inside the element to search item to buy");
                         buySearchElement.Clear();
+                        logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
+                        logger.Debug("BuyItem(Slot slot)\t| Trying to send keys ({0}) to the element to search item to buy", slot.ItemName);
                         buySearchElement.SendKeys(slot.ItemName);
-
-                        //Thread.Sleep(1500);
+                        logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
 
                         // Wait for list to appear (slow)
+                        logger.Debug("BuyItem(Slot slot)\t| Waiting for the search result item to be visible");
                         driver.FindElement(By.CssSelector(buySearchResultItemElementCsss.Replace("CHILD_NUMBER", "1")), 10);
+                        logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
 
                         // Find the correct item in the list.
                         // Sometimes no result shows up in the list due to a bug in the RuneScape Companion web app.
                         string searchResultItemName = "";
 
+                        logger.Debug("BuyItem(Slot slot)\t| Trying to find item in list");
                         int i = 1; // CHILD_NUMBER is not zero-based.
                         do
                         {
@@ -195,6 +282,7 @@ namespace AIOFlipper
                         } while (searchResultItemName != slot.ItemName);
 
                         // Set the itemFound varriable to true to escape the while loop.
+                        logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
                         itemFound = true;
                     }
                     catch (DisconnectedFromRSCompanionException)
@@ -324,9 +412,6 @@ namespace AIOFlipper
 
                         // Update the item
                         UpdateItem(item);
-
-                        // Beep for debugging
-                        Console.Beep(800, 2000);
 
                         // Open the GE
                         OpenBank();
@@ -807,9 +892,16 @@ namespace AIOFlipper
             }
             catch (Exception)
             {
-                driver.WrappedDriver.Navigate().Refresh();
-                Console.Beep();
-                Login(account);
+                try
+                {
+                    driver.WrappedDriver.Navigate().Refresh();
+                    Console.Beep();
+                    Login(account);
+                }
+                catch (WebDriverException)
+                {
+                    Reconnect();
+                }
             }
         }
 
@@ -886,6 +978,13 @@ namespace AIOFlipper
             }
             catch (TimeoutException)
             {
+                Reconnect();
+                OpenGrandExchange();
+            }
+            catch (WebDriverException e)
+            {
+                // Log
+                logger.Warn(e, "WebDriverException, Attempting to reconnect");
                 Reconnect();
                 OpenGrandExchange();
             }
@@ -1378,9 +1477,6 @@ namespace AIOFlipper
                         // Update the item
                         UpdateItem(item);
 
-                        // Beep for debugging
-                        Console.Beep(800, 2000);
-
                         // Open the GE
                         OpenBank();
                         OpenGrandExchange();
@@ -1459,8 +1555,6 @@ namespace AIOFlipper
 
                 if (caseOneValidated)
                 {
-                    // Beep to alert for debugging.
-                    Console.Beep();
                     // Case 1 solution
                     // Step 1: Try to collect the correct slot again.
                     CollectSlot(slot);
@@ -1522,8 +1616,6 @@ namespace AIOFlipper
                 #region Case 2
                 else
                 {
-                    // Beep to alert for debugging.
-                    Console.Beep();
                     // Case 2 solution:
                     // Step 1: Reload the Grand Exhange page.
                     OpenGrandExchange();
@@ -1668,32 +1760,49 @@ namespace AIOFlipper
                     }
                     catch (NoSuchWindowException)
                     {
-                        // The correct tab was not found, assign the correct tabs for the accounts
-                        // We do this based on the world parameter in the url
-                        // Start J on 1 since the tab with index 0 will be the blank starting tab
-                        for (int j = 1; j < driver.WindowHandles.Count; j++)
+                        try
                         {
-                            // Switch to the tab
-                            driver.SwitchTo().Window(driver.WindowHandles[j]);
-
-                            // Get the world from the url
-                            string url = driver.Url;
-                            string worldParameter = url.Split('/')[3];
-                            long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
-
-                            // Get the matching account based on the world
-                            for (int k = 0; k < accounts.Length; k++)
+                            // The correct tab was not found, assign the correct tabs for the accounts
+                            // We do this based on the world parameter in the url
+                            // Start J on 1 since the tab with index 0 will be the blank starting tab
+                            for (int j = 1; j < driver.WindowHandles.Count; j++)
                             {
-                                if (accounts[k].World == world)
+                                // Switch to the tab
+                                driver.SwitchTo().Window(driver.WindowHandles[j]);
+
+                                // Get the world from the url
+                                string url = driver.Url;
+                                string worldParameter = url.Split('/')[3];
+                                long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
+
+                                // Get the matching account based on the world
+                                for (int k = 0; k < accounts.Length; k++)
                                 {
-                                    // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
-                                    tabs[k] = driver.CurrentWindowHandle;
+                                    if (accounts[k].World == world)
+                                    {
+                                        // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
+                                        tabs[k] = driver.CurrentWindowHandle;
+                                    }
                                 }
                             }
+
+                            // Get the correct tab
+                            driver.SwitchTo().Window(tabs[i]);
+
+                            StartFlipping();
+                            return;
+                        }
+                        catch(WebDriverException)
+                        {
+                            Reconnect();
+                            StartFlipping();
+                            return;
                         }
                     }
-
-                    
+                    catch (WebDriverException)
+                    {
+                        Reconnect();
+                    }
 
                     for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)
                     {
