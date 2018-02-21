@@ -14,8 +14,7 @@ namespace AIOFlipper
 {
     class Flipper
     {
-        private NgWebDriver driver;
-        private List<string> tabs;
+        public NgWebDriver driver;
 
         private static Logger logger;
 
@@ -33,7 +32,6 @@ namespace AIOFlipper
         public Flipper(Account[] accounts)
         {
             this.accounts = accounts;
-            this.tabs = new List<string>();
 
             couchPortal = new CouchPortal();
 
@@ -827,9 +825,9 @@ namespace AIOFlipper
             return slotsValue;
         }
 
-        private void GoToRuneScapeCompanionPage()
+        private void GoToRuneScapeCompanionPage(Account account)
         {
-            driver.WrappedDriver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", currentAccount.World));
+            driver.WrappedDriver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", account.World));
         }
 
         private void Login()
@@ -1029,21 +1027,15 @@ namespace AIOFlipper
                     }
                 }
 
-                // Replace the closed tab in the tabs list with the new tab
-                for (int i = 0; i < tabs.Count; i++)
-                {
-                    if (tabs[i] == tabToClose)
-                    {
-                        tabs[i] = newTab;
-                    }
-                }
+                // Assign the correct tab reference to the account
+                currentAccount.TabReference = newTab;
 
                 // Switch to the new tab
-                driver.SwitchTo().Window(newTab);
+                driver.SwitchTo().Window(currentAccount.TabReference);
 
-                GoToRuneScapeCompanionPage();
+                GoToRuneScapeCompanionPage(currentAccount);
 
-                Login();
+                Login(currentAccount);
 
                 // Log
                 logger.Warn("Account has been successfully reconnected");
@@ -1069,32 +1061,26 @@ namespace AIOFlipper
                 // Initialize the NgWebDriver
                 driver = new NgWebDriver(edgeDriver);
 
-                // Clear the old tabs list
-                tabs = new List<string>();
-
-                foreach (Account tempAccount in accounts)
+                for (int i = 0; i < accounts.Length; i++)
                 {
                     // Execute some JavaScript to open a new window
                     ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
                     // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                    string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
-
-                    tabs.Add(newTab);
+                    accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
 
                     // Switch our driver to the new tab's window handle
-                    driver.SwitchTo().Window(newTab);
+                    driver.SwitchTo().Window(accounts[i].TabReference);
 
                     // Lets navigate to the RuneScape Companion web app in our new tab
-                    GoToRuneScapeCompanionPage();
+                    GoToRuneScapeCompanionPage(accounts[i]);
 
                     // Login the currentAccount
-                    Login(tempAccount);
+                    Login(accounts[i]);
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
-
-                }               
+                }          
 
                 // Log
                 logger.Warn("Account has been successfully reconnected");
@@ -1124,20 +1110,13 @@ namespace AIOFlipper
                         if (accounts[k].World == world)
                         {
                             // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
-                            tabs[k] = driver.CurrentWindowHandle;
+                            accounts[k].TabReference = driver.CurrentWindowHandle;
                         }
                     }
                 }
 
                 // Switch to the active account's tab
-                for (int i = 0; i < accounts.Length; i++)
-                {
-                    if (accounts[i].Username == currentAccount.Username)
-                    {
-                        driver.SwitchTo().Window(tabs[i]);
-                        break;
-                    }
-                }
+                driver.SwitchTo().Window(currentAccount.TabReference);
             }
             catch(WebDriverTimeoutException)
             {
@@ -1160,31 +1139,25 @@ namespace AIOFlipper
                 // Initialize the NgWebDriver
                 driver = new NgWebDriver(edgeDriver);
 
-                // Clear the old tabs list
-                tabs = new List<string>();
-
-                foreach (Account tempAccount in accounts)
+                for (int i = 0; i < accounts.Length; i++)
                 {
                     // Execute some JavaScript to open a new window
                     ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
                     // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                    string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
-
-                    tabs.Add(newTab);
+                    accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
 
                     // Switch our driver to the new tab's window handle
-                    driver.SwitchTo().Window(newTab);
+                    driver.SwitchTo().Window(accounts[i].TabReference);
 
                     // Lets navigate to the RuneScape Companion web app in our new tab
-                    GoToRuneScapeCompanionPage();
+                    GoToRuneScapeCompanionPage(accounts[i]);
 
                     // Login the currentAccount
-                    Login(tempAccount);
+                    Login(accounts[i]);
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
-
                 }
 
                 // Log
@@ -1211,37 +1184,33 @@ namespace AIOFlipper
                 // Initialize the NgWebDriver
                 driver = new NgWebDriver(edgeDriver);
 
-                // Clear the old tabs list
-                tabs = new List<string>();
-
-                foreach (Account tempAccount in accounts)
+                for (int i = 0; i < accounts.Length; i++)
                 {
                     // Execute some JavaScript to open a new window
                     ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
                     // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                    string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
-
-                    tabs.Add(newTab);
+                    accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
 
                     // Switch our driver to the new tab's window handle
-                    driver.SwitchTo().Window(newTab);
+                    driver.SwitchTo().Window(accounts[i].TabReference);
 
                     // Lets navigate to the RuneScape Companion web app in our new tab
-                    GoToRuneScapeCompanionPage();
+                    GoToRuneScapeCompanionPage(accounts[i]);
 
                     // Login the currentAccount
-                    Login(tempAccount);
+                    Login(accounts[i]);
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
-
                 }
 
                 // Log
                 logger.Warn("Account has been successfully reconnected");
             }
 
+            // Switch to the active account's tab
+            driver.SwitchTo().Window(currentAccount.TabReference);
         }
 
         private bool RemoveItemFromAvailableItems(string itemName)
@@ -1678,49 +1647,56 @@ namespace AIOFlipper
 
         public void Start()
         {
-            // Instanciate the logger.
-            logger = LogManager.GetLogger("Flipper");
-
-            EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
-            driverService.HideCommandPromptWindow = true;
-
-            IWebDriver edgeDriver = new EdgeDriver(driverService);
-
-            logger.Debug("Started new edge driver");
-
-            // Configure timeouts (important since Protractor uses asynchronous client side scripts)
-            edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
-
-            // Initialize the NgWebDriver
-            driver = new NgWebDriver(edgeDriver);
-
-            foreach (Account tempAccount in accounts)
+            while (true)
             {
-                // Set the currentAccount to tempAccount
-                currentAccount = tempAccount;
+                try
+                {
+                    // Instanciate the logger.
+                    logger = LogManager.GetLogger("Flipper");
 
-                // Execute some JavaScript to open a new window
-                ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+                    EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                    driverService.HideCommandPromptWindow = true;
 
-                // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                string newTab = driver.WindowHandles[driver.WindowHandles.Count - 1];
+                    IWebDriver edgeDriver = new EdgeDriver(driverService);
 
-                tabs.Add(newTab);
+                    logger.Debug("Started new edge driver");
 
-                // Switch our driver to the new tab's window handle
-                driver.SwitchTo().Window(newTab);
+                    // Configure timeouts (important since Protractor uses asynchronous client side scripts)
+                    edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
 
-                // Lets navigate to the RuneScape Companion web app in our new tab
-                GoToRuneScapeCompanionPage();
+                    // Initialize the NgWebDriver
+                    driver = new NgWebDriver(edgeDriver);
 
-                // Login the currentAccount
-                Login();
+                    for (int i = 0; i < accounts.Length; i++)
+                    {
+                        // Set the currentAccount to tempAccount
+                        currentAccount = accounts[i];
 
-                // Open the Grand Exchange page
-                OpenGrandExchange();     
+                        // Execute some JavaScript to open a new window
+                        ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+
+                        // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
+                        accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
+
+                        // Switch our driver to the new tab's window handle
+                        driver.SwitchTo().Window(accounts[i].TabReference);
+
+                        // Lets navigate to the RuneScape Companion web app in our new tab
+                        GoToRuneScapeCompanionPage(accounts[i]);
+
+                        // Login the current Account
+                        Login(accounts[i]);
+
+                        // Open the Grand Exchange page
+                        OpenGrandExchange();
+                    }
+                    StartFlipping();
+                }
+                catch (Exception)
+                {
+                    driver.Quit();
+                }
             }
-
-            StartFlipping();
         }
 
         private void StartFlipping()
@@ -1745,7 +1721,7 @@ namespace AIOFlipper
                     try
                     {
                         // Get the correct tab
-                        driver.SwitchTo().Window(tabs[i]);
+                        driver.SwitchTo().Window(currentAccount.TabReference);
 
                         // Get the world from the url
                         string url = driver.Url;
@@ -1781,13 +1757,13 @@ namespace AIOFlipper
                                     if (accounts[k].World == world)
                                     {
                                         // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
-                                        tabs[k] = driver.CurrentWindowHandle;
+                                        accounts[k].TabReference = driver.CurrentWindowHandle;
                                     }
                                 }
                             }
 
                             // Get the correct tab
-                            driver.SwitchTo().Window(tabs[i]);
+                            driver.SwitchTo().Window(currentAccount.TabReference);
 
                             StartFlipping();
                             return;
@@ -1802,6 +1778,8 @@ namespace AIOFlipper
                     catch (WebDriverException)
                     {
                         Reconnect();
+                        StartFlipping();
+                        return;
                     }
 
                     for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)

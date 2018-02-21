@@ -48,10 +48,13 @@ namespace AIOFlipper
         [JsonProperty("maxTier")]
         public long MaxTier { get; set; }
 
+        [JsonProperty("tabReference")]
+        public string TabReference { get; set; }
+
         [JsonProperty("slots")]
         public Slot[] Slots { get; set; }
 
-        public Account(string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, Slot[] slots)
+        public Account(string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, Slot[] slots)
         {
             Username = username;
             Email = email;
@@ -65,6 +68,7 @@ namespace AIOFlipper
             SlotsValue = slotsValue;
             TotalValue = totalValue;
             MaxTier = maxTier;
+            TabReference = tabReference;
             Slots = slots;
         }
 
