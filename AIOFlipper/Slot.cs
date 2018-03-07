@@ -26,7 +26,10 @@ namespace AIOFlipper
         [JsonProperty("soldFor")]
         public long SoldFor { get; set; }
 
-        public Slot(long number, string itemName, string slotState, DateTime time, long value, long boughtFor, long soldFor)
+        [JsonProperty("buyLimitTracker")]
+        public long BuyLimitTracker { get; set; }
+
+        public Slot(long number, string itemName, string slotState, DateTime time, long value, long boughtFor, long soldFor, long buyLimitTracker)
         {
             Number = number;
             ItemName = itemName;
@@ -35,6 +38,7 @@ namespace AIOFlipper
             Value = value;
             BoughtFor = boughtFor;
             SoldFor = soldFor;
+            BuyLimitTracker = buyLimitTracker;
         }
 
         public Item GetItem()

@@ -122,7 +122,12 @@ namespace AIOFlipper
         {
             try
             {
-                return driver.Url.Contains("login");
+                if (driver.Url.Contains("login") || driver.Url.Contains("unavailable"))
+                {
+                    return true;
+                }
+                return false;
+                
             }
             catch (WebDriverException)
             {

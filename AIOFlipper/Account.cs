@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace AIOFlipper
 {
@@ -54,7 +56,10 @@ namespace AIOFlipper
         [JsonProperty("slots")]
         public Slot[] Slots { get; set; }
 
-        public Account(string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, Slot[] slots)
+        [JsonProperty("lastItemBuys")]
+        public string[] LastItemBuys { get; set; }
+
+        public Account(string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, Slot[] slots, string[] lastItemBuys)
         {
             Username = username;
             Email = email;
@@ -70,6 +75,7 @@ namespace AIOFlipper
             MaxTier = maxTier;
             TabReference = tabReference;
             Slots = slots;
+            LastItemBuys = lastItemBuys;
         }
 
         public AccountNameTagUC CreateAccountTag()
@@ -142,6 +148,66 @@ namespace AIOFlipper
             panel.Controls.Add(CreateAccountCharacterImage());
 
             return panel;
+        }
+
+        public void UpdateLastBuy(Slot slot)
+        {
+            for (int i = 0; i < LastItemBuys.Length; i++)
+            {
+                string itemName = LastItemBuys[i].Split(';')[0];
+
+                if (slot.ItemName == itemName)
+                {
+                    LastItemBuys[i] = itemName + ";" + DateTime.Now;
+                    break;
+                }
+            }
+        }
+
+        public List<string> GetItemNamesInSlots()
+        {
+            List<string> itemNames = new List<string>();
+            foreach (Slot slot in Slots)
+            {
+                // Check to see if the slot is not empty
+                if (slot.SlotState != "empty")
+                {
+                    itemNames.Add(slot.ItemName);
+                }
+            }
+
+            return itemNames;
+        }
+
+        public List<Item> GetAvailableItems()
+        {
+            Item[] items = Program.Items;
+            List<Item> availableItems = new List<Item>();
+            for (int i = 0; i < LastItemBuys.Length; i++)
+            {
+                // Check if the date and time is not empty & check if the timestamp was longer than 4hours ago.
+                if (LastItemBuys[i].Split(';')[1] != "" && (DateTime.Now - DateTime.Parse((LastItemBuys[i].Split(';')[1]))).TotalMinutes >= 240) //4h
+                {
+                    List<string> itemNamesInSlots = GetItemNamesInSlots();
+                    // Check if the item is not already being bought by one of the slots
+                    if (!itemNamesInSlots.Contains(LastItemBuys[i].Split(';')[0]))
+                    {
+                        for (int j = 0; j < items.Length; j++)
+                        {
+                            // Find the correct item in the list of items.
+                            if (LastItemBuys[i].Split(';')[0] == items[j].Name)
+                            {
+                                // Add the item to the list of available items.
+                                availableItems.Add(items[j]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Return the list of available items ordered by the current margin of the item, with the item with the highest margin comming first in the list.
+            return (List<Item>)(availableItems.OrderByDescending(i => i.GetCurrentMargin()).ToList());
         }
     }
 }

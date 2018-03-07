@@ -23,9 +23,6 @@ namespace AIOFlipper
         private Account[] accounts;
         private Account currentAccount;
 
-        private List<List<Item>> availableItems;
-        private List<Item> accountSpecificAvailableItems;
-        
         private const int timeBeforePriceUpdate = 20;
 
         // Constuctor
@@ -34,8 +31,6 @@ namespace AIOFlipper
             this.accounts = accounts;
 
             couchPortal = new CouchPortal();
-
-            SetupItems();
         }
 
         // Methods
@@ -325,7 +320,7 @@ namespace AIOFlipper
 
                     } while (offerPricePerItemElement.GetAttribute("value") != slot.Value.ToString());
 
-                    
+
                     // Sleep to avoid the popup not presenting.
                     //Thread.Sleep(1500);
                     offerPricePerItemElement.SendKeys(Keys.Enter);
@@ -350,16 +345,6 @@ namespace AIOFlipper
 
                         // Exit the method
                         return;
-                    }
-
-                    // Remove the item from the available items list
-                    foreach (Item item in accountSpecificAvailableItems)
-                    {
-                        if (item.Name == slot.ItemName)
-                        {
-                            accountSpecificAvailableItems.Remove(item);
-                            break;
-                        }
                     }
 
                     OpenBank();
@@ -422,7 +407,7 @@ namespace AIOFlipper
                     throw new DisconnectedFromRSCompanionException();
                 }
 
-                
+
             }
             catch (DisconnectedFromRSCompanionException)
             {
@@ -652,7 +637,7 @@ namespace AIOFlipper
                 offerCollectionSlot1Element.Click();
 
 
-                
+
             }
             catch (DisconnectedFromRSCompanionException)
             {
@@ -705,44 +690,37 @@ namespace AIOFlipper
             }
         }
 
-        private Item GetItemToBuy()
+        private Item GetItemToBuy(Slot slot)
         {
-            Item itemToBuy = null;
-            if (accountSpecificAvailableItems.Count > 0)
+            // Check if the previous item is already bought the max allowed times.
+            // If not return the previous item and leave the tracker unchanged.
+            // If it did reach the limit, try to get a new item and reset the tracker to 0.
+            Item previousItem = slot.GetItem();
+            //if (slot.BuyLimitTracker < previousItem.BuyLimit)
+            //{
+            //    return previousItem;
+            //}
+            //else
+            //{
+            //    if (currentAccount.GetAvailableItems().Count > 0)
+            //    {
+            //        // Get first item in availableItems.
+            //        // The list was sorted so the item with the highest margin would be first.
+            //        slot.BuyLimitTracker = 0;
+            //        return currentAccount.GetAvailableItems().First();
+            //    }
+            //}
+
+
+            if (currentAccount.GetAvailableItems().Count > 0)
             {
-                // Get first item in availableItems;
-                itemToBuy = accountSpecificAvailableItems.First();
-            }
-            else if ((DateTime.Now - currentAccount.StartTime).TotalMinutes >= 240) //4h
-            {
-                foreach (Item item in Program.Items)
-                {
-                    // Check the item tier. If the accounts maxTier is higher or equal, add the item to the available items.
-                    if (item.Tier <= currentAccount.MaxTier)
-                    {
-                        accountSpecificAvailableItems.Add(item);
-                    }
-                }
-
-                // Get first item in availableItems
-                itemToBuy = accountSpecificAvailableItems.First();
-
-                // Reset StartTime
-                currentAccount.StartTime = DateTime.Now;
-
-                // Update currentAccount
-                UpdateAccount();
-            }
-            else
-            {
-                // Set the cooldownUntil for the account to the startTime + 4 hours
-                currentAccount.CooldownUntil = currentAccount.StartTime.AddHours(4);
-
-                // Update currentAccount
-                UpdateAccount();
+                // Get first item in availableItems.
+                // The list was sorted so the item with the highest margin would be first.
+                slot.BuyLimitTracker = 0;
+                return currentAccount.GetAvailableItems().First();
             }
 
-            return itemToBuy;
+            return null;
         }
 
         private string GetLastActiveItemOnItemList(Item[] items)
@@ -1080,7 +1058,7 @@ namespace AIOFlipper
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
-                }          
+                }
 
                 // Log
                 logger.Warn("Account has been successfully reconnected");
@@ -1118,7 +1096,7 @@ namespace AIOFlipper
                 // Switch to the active account's tab
                 driver.SwitchTo().Window(currentAccount.TabReference);
             }
-            catch(WebDriverTimeoutException)
+            catch (WebDriverTimeoutException)
             {
                 // Webdriver crashed, start a new webdriver
                 driver.Quit();
@@ -1211,34 +1189,6 @@ namespace AIOFlipper
 
             // Switch to the active account's tab
             driver.SwitchTo().Window(currentAccount.TabReference);
-        }
-
-        private bool RemoveItemFromAvailableItems(string itemName)
-        {
-            foreach (Item availableItem in accountSpecificAvailableItems)
-            {
-                if (availableItem.Name == itemName)
-                {
-                    accountSpecificAvailableItems.Remove(availableItem);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool RemoveItemFromAvailableItems(Item item)
-        {
-            foreach (Item availableItem in accountSpecificAvailableItems)
-            {
-                if (availableItem.Name == item.Name)
-                {
-                    accountSpecificAvailableItems.Remove(availableItem);
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private void SellItem(Slot slot)
@@ -1391,16 +1341,6 @@ namespace AIOFlipper
 
                         // Exit the method
                         return;
-                    }
-
-                    // Remove the item from the available items list (altough it should not be on it.)
-                    foreach (Item item in accountSpecificAvailableItems)
-                    {
-                        if (item.Name == slot.ItemName)
-                        {
-                            accountSpecificAvailableItems.Remove(item);
-                            break;
-                        }
                     }
 
                     OpenGrandExchange();
@@ -1603,48 +1543,6 @@ namespace AIOFlipper
             }
         }
 
-        private void SetupItems()
-        {
-            Item[] tempItems = Program.Items;
-            availableItems = new List<List<Item>>();
-
-            for (int i = 0; i < accounts.Length; i++)
-            {
-                accountSpecificAvailableItems = new List<Item>();
-
-                currentAccount = accounts[i];
-
-                foreach (Item item in tempItems)
-                {
-                    // Check the item tier. If the accounts maxTier is higher or equal, add the item to the available items.
-                    if (item.Tier <= currentAccount.MaxTier)
-                    {
-                        accountSpecificAvailableItems.Add(item);
-                    }
-                }
-
-                string lastActiveItem = GetLastActiveItemOnItemList(tempItems);
-                foreach (Item item in tempItems)
-                {
-                    if (item.Name != lastActiveItem)
-                    {
-                        RemoveItemFromAvailableItems(item.Name);
-                    }
-                    else
-                    {
-                        // Reached the item, remove it from the list as well, if not bandos helmet, and break to avoid removing other items.
-                        if (item.Name != "Bandos helmet")
-                        {
-                            RemoveItemFromAvailableItems(item.Name);
-                        }
-                        break;
-                    }
-                }
-
-                availableItems.Add(accountSpecificAvailableItems);
-            }
-        }
-
         public void Start()
         {
             while (true)
@@ -1694,7 +1592,7 @@ namespace AIOFlipper
                 }
                 catch (Exception)
                 {
-                    driver.Quit();
+                    //driver.Quit();
                 }
             }
         }
@@ -1714,9 +1612,6 @@ namespace AIOFlipper
 
                     // Get the correct currentAccount
                     currentAccount = accounts[i];
-
-                    // Get the correct accountSpecificAvailableItems
-                    accountSpecificAvailableItems = availableItems[i];
 
                     try
                     {
@@ -1768,7 +1663,7 @@ namespace AIOFlipper
                             StartFlipping();
                             return;
                         }
-                        catch(WebDriverException)
+                        catch (WebDriverException)
                         {
                             Reconnect();
                             StartFlipping();
@@ -1801,21 +1696,15 @@ namespace AIOFlipper
                             {
                                 case "empty":
                                     {
-                                        // Check if the account is on cooldown. If not, get a new item.
-                                        // If on cooldown, the slot remains empty.
-                                        if (currentAccount.CooldownUntil <= DateTime.Now)
+                                        // Check if there are items available for the account. If not, skip the slot.
+                                        if (currentAccount.GetAvailableItems().Count > 0)
                                         {
                                             // Get item to buy + update slot value's: itemName, Value.
-                                            Item itemToBuy = GetItemToBuy();
+                                            Item itemToBuy = GetItemToBuy(slot);
 
                                             // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
                                             if (itemToBuy != null)
                                             {
-                                                if (itemToBuy.Name == "Bandos helmet")
-                                                {
-                                                    currentAccount.StartTime = DateTime.Now;
-                                                }
-
                                                 slot.ItemName = itemToBuy.Name;
 
                                                 // Update the slotValue or currentBuyPrice if necessary.
@@ -1901,10 +1790,6 @@ namespace AIOFlipper
                                     }
                                 case "buying":
                                     {
-                                        // Check if the list of available items contains this item, if so remove it.
-                                        // This can occur when the available items list was refreshed when slots still contained items to buy and sell.
-                                        RemoveItemFromAvailableItems(slot.ItemName);
-
                                         if (CheckUpdateItemAndSlot(slot.Number))
                                         {
                                             // Log
@@ -1954,10 +1839,6 @@ namespace AIOFlipper
                                     }
                                 case "selling":
                                     {
-                                        // Check if the list of available items contains this item, if so remove it.
-                                        // This can occur when the available items list was refreshed when slots still contained items to buy and sell.
-                                        RemoveItemFromAvailableItems(slot.ItemName);
-
                                         if (CheckUpdateItemAndSlot(slot.Number))
                                         {
                                             // Log
@@ -2046,6 +1927,12 @@ namespace AIOFlipper
                                             slot.Number
                                         );
 
+                                        // Update last buy of item
+                                        currentAccount.UpdateLastBuy(slot);
+
+                                        // Add 1 to the slots BuyLimitTracker
+                                        slot.BuyLimitTracker++;
+
                                         // Update the slotState
                                         slot.SlotState = "empty";
 
@@ -2122,21 +2009,16 @@ namespace AIOFlipper
                                         // Update the slotState
                                         slot.SlotState = "empty";
 
-                                        // Check if the account is on cooldown. If not, get a new item.
-                                        // If on cooldown, the slot remains empty.
-                                        if (currentAccount.CooldownUntil <= DateTime.Now)
+                                        // Check if the account has items available.
+                                        // If not, the slot remains empty.
+                                        if (currentAccount.GetAvailableItems().Count > 0)
                                         {
                                             // Get item to buy + update slot value's: itemName, Value.
-                                            Item itemToBuy = GetItemToBuy();
+                                            Item itemToBuy = GetItemToBuy(slot);
 
                                             // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
                                             if (itemToBuy != null)
                                             {
-                                                if (itemToBuy.Name == "Bandos helmet")
-                                                {
-                                                    currentAccount.StartTime = DateTime.Now;
-                                                }
-
                                                 slot.ItemName = itemToBuy.Name;
 
                                                 // Update the slotValue or currentBuyPrice if necessary.
@@ -2211,7 +2093,7 @@ namespace AIOFlipper
                             }
                         }
                     }
-  
+
                     // Switch to bank back to GE, to avoid logging out.
                     //OpenBank();
                     //OpenGrandExchange();

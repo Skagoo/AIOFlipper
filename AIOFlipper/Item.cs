@@ -56,5 +56,10 @@ namespace AIOFlipper
             Tier = tier;
             ItemImageUrl = itemImageUrl;
         }
+
+        public long GetCurrentMargin()
+        {
+            return CurrentSellPrice - CurrentBuyPrice;
+        }
     }
 }
