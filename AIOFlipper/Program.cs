@@ -16,9 +16,6 @@ namespace AIOFlipper
 
         public static Form1 form;
 
-        private static Queue<Account> updateAccountQueue;
-        private static Queue<Item> updateItemQueue;
-
         [STAThread]
         static void Main()
         {
