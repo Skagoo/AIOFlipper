@@ -25,10 +25,6 @@ namespace AIOFlipper
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Initialize the update queues.
-            updateAccountQueue = new Queue<Account>();
-            updateItemQueue = new Queue<Item>();
-
             form = new Form1();
 
             List<Account> activeAccounts = new List<Account>();
@@ -67,18 +63,12 @@ namespace AIOFlipper
             Environment.Exit(Environment.ExitCode);
         }
 
-        public static Account[] Accounts
+        public static List<Account> Accounts
         {
             get
             {
                 CouchPortal couchPortal = new CouchPortal();
                 return couchPortal.GetAccounts();
-            }
-
-            set
-            {
-                CouchPortal couchPortal = new CouchPortal();
-                couchPortal.UpdateAccounts(value);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using Chesterfield;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 
 namespace AIOFlipper
 {
@@ -14,91 +15,48 @@ namespace AIOFlipper
         {
         }
 
-        public void UpdateAccounts(Account[] accounts)
+        public void UpdateAccount(Account account)
         {
             CouchClient couchClient = new CouchClient();
 
-            string docId = "accounts-" + DateTime.Today.ToString("yyyy-MM-dd");
+            string docId = account.Email;
 
             CouchDatabase db = couchClient.GetDatabase(accountsDB);
-            JDocument doc;
+            JDocument doc = db.GetDocument<JDocument>(docId);
 
-            // Check if todays document exists already, else create it.
-            if (db.DocumentExists(docId))
-            {
-                doc = db.GetDocument<JDocument>(docId);
-            }
-            else
-            {
-                CreateTodaysAccountsDoc();
+            JDocument newDoc = new JDocument(Serialize.ToJson(account));
+            newDoc.Rev = doc.Rev;
 
-                // Get the docment from db
-                doc = db.GetDocument<JDocument>(docId);
-            }
-
-            JToken token = doc.GetValue("accounts");
-            token.Replace(JToken.Parse(Serialize.ToJson(accounts)));
-
-            db.UpdateDocument(doc);
+            db.UpdateDocument(newDoc);
 
             couchClient = null;
         }
 
-        public Account[] GetAccounts()
+        public List<Account> GetAccounts()
         {
+            List<Account> accounts = new List<Account>();
             CouchClient couchClient = new CouchClient();
 
-            string docId = "accounts-" + DateTime.Today.ToString("yyyy-MM-dd");
-
             CouchDatabase db = couchClient.GetDatabase(accountsDB);
-            JDocument doc;
+            JObject viewResult = db.GetView("accountsDesignDoc", "getAllAccounts");
 
-            // Check if todays document exists already, else create it.
-            if (db.DocumentExists(docId))
+            foreach (JDocument doc in viewResult.GetValue("rows"))
             {
-                doc = db.GetDocument<JDocument>(docId);
+                accounts.Add(Account.FromJson(doc.ToString()));
             }
-            else
-            {
-                CreateTodaysAccountsDoc();
-
-                // Get the docment from db
-                doc = db.GetDocument<JDocument>(docId);
-            }
-
             couchClient = null;
 
-            return Account.FromJson(doc.GetValue("accounts").ToString());
+            return accounts;
         }
 
-        private void CreateTodaysAccountsDoc()
+        public Account GetAccount(string email)
         {
             CouchClient couchClient = new CouchClient();
 
-            string docId = "accounts-" + DateTime.Today.ToString("yyyy-MM-dd");
-
             CouchDatabase db = couchClient.GetDatabase(accountsDB);
-            JDocument doc;
+            JDocument doc = db.GetDocument<JDocument>(email);
 
-            ViewOptions viewOptions = new ViewOptions();
-            viewOptions.Descending = true;
-            viewOptions.Limit = 1;
-
-            // Get the id of the latest accounts document
-            JObject viewResult = db.GetView("accountsDesignDoc", "getLastAccountsDocument", viewOptions);
-            JToken rows = viewResult.GetValue("rows");
-            string oldDocId = rows[0]["id"].ToString();
-
-            // Get the latest accounts document
-            doc = db.GetDocument<JDocument>(oldDocId);
-
-            // Change the id of the document to the correct id for today
-            doc.Id = docId;
-
-            // Create the document with the new id
-            db.CreateDocument(doc);
-
-            couchClient = null;
+            return Account.FromJson(doc.ToString());
         }
 
         public void UpdateItems(Item[] items)

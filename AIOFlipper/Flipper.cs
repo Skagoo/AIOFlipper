@@ -1693,7 +1693,7 @@ namespace AIOFlipper
                             if (slot.SlotState != slotState)
                             {
                                 slot.SlotState = slotState;
-                                UpdateAccount();
+                                UpdateAccount(currentAccount);
                             }
 
                             switch (slotState)
@@ -2082,7 +2082,7 @@ namespace AIOFlipper
                                 currentAccount.SlotsValue = GetSlotsValue();
 
                                 currentAccount.TotalValue = currentAccount.MoneyPouchValue + currentAccount.SlotsValue;
-                                UpdateAccount();
+                                UpdateAccount(currentAccount);
                                 accountHasChangedValues = false;
 
                                 logger.Debug(
@@ -2127,9 +2127,9 @@ namespace AIOFlipper
             ss.SaveAsFile("../screenshot.jpg", ScreenshotImageFormat.Jpeg);
         }
 
-        private void UpdateAccount()
+        private void UpdateAccount(Account account)
         {
-            Program.Accounts = accounts;
+            couchPortal.UpdateAccount(account);
         }
 
         private void UpdateItem(Item item)

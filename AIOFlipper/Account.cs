@@ -9,11 +9,17 @@ namespace AIOFlipper
 {
     public partial class Account
     {
-        public static Account[] FromJson(string json) => JsonConvert.DeserializeObject<Account[]>(json, Converter.Settings);
+        public static Account FromJson(string json) => JsonConvert.DeserializeObject<Account>(json, Converter.Settings);
     }
 
     public partial class Account
     {
+        [JsonProperty("_id")]
+        public string Id { get; set; }
+
+        [JsonProperty("_rev")]
+        public string Rev { get; set; }
+
         [JsonProperty("username")]
         public string Username { get; set; }
 
@@ -59,8 +65,10 @@ namespace AIOFlipper
         [JsonProperty("lastItemBuys")]
         public string[] LastItemBuys { get; set; }
 
-        public Account(string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, Slot[] slots, string[] lastItemBuys)
+        public Account(string id, string rev, string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, Slot[] slots, string[] lastItemBuys)
         {
+            Id = id;
+            Rev = rev;
             Username = username;
             Email = email;
             Password = password;
