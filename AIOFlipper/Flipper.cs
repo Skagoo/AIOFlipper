@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
+using OpenQA.Selenium.Firefox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2134,18 +2135,7 @@ namespace AIOFlipper
 
         private void UpdateItem(Item item)
         {
-            Item[] items = Program.Items;
-
-            for (int i = 0; i < items.Length; i++)
-            {
-                if (items[i].Name == item.Name)
-                {
-                    items[i] = item;
-                    break;
-                }
-            }
-
-            Program.Items = items;
+            couchPortal.UpdateItem(item);
         }
 
     }

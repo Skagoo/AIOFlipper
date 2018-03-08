@@ -189,7 +189,7 @@ namespace AIOFlipper
 
         public List<Item> GetAvailableItems()
         {
-            Item[] items = Program.Items;
+            List<Item> items = Program.Items;
             List<Item> availableItems = new List<Item>();
             for (int i = 0; i < LastItemBuys.Length; i++)
             {
@@ -200,7 +200,7 @@ namespace AIOFlipper
                     // Check if the item is not already being bought by one of the slots
                     if (!itemNamesInSlots.Contains(LastItemBuys[i].Split(';')[0]))
                     {
-                        for (int j = 0; j < items.Length; j++)
+                        for (int j = 0; j < items.Count; j++)
                         {
                             // Find the correct item in the list of items.
                             if (LastItemBuys[i].Split(';')[0] == items[j].Name)

@@ -24,25 +24,43 @@ namespace AIOFlipper
 
             form = new Form1();
 
+            List<Thread> flipperThreads = new List<Thread>();
+
             List<Account> activeAccounts = new List<Account>();
+            int i = 0;
             foreach (Account account in Accounts)
             {
                 if (account.IsActive)
                 {
-                    activeAccounts.Add(account);
+                    if (i < 5)
+                    {
+                        activeAccounts.Add(account);
+                        i++;
+                    }
+                    else
+                    {
+                        // 5 Accounts in the list, create a thread for those.
+                        flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray())));
+
+                        // Set the counter to 1
+                        i = 1;
+
+                        // Add the account to activeAccounts
+                        activeAccounts.Clear();
+                        activeAccounts.Add(account);
+                    }
+                    
                 }
             }
 
-            Thread myThread = new Thread(() => StartFlipperThread(activeAccounts.ToArray()));
-            myThread.IsBackground = true;
-            myThread.Start();
+            // Remaining Accounts in the list, create a thread for those.
+            flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray())));
 
-            //for (int i = 0; i < activeAccounts.Count - 1; i++)
-            //{
-            //    Thread myThread = new Thread(() => StartFlipperThread(new Account[] { activeAccounts[i]}));
-            //    myThread.IsBackground = true;
-            //    myThread.Start();
-            //}
+            foreach (Thread thread in flipperThreads)
+            {
+                thread.IsBackground = true;
+                thread.Start();
+            }
 
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
@@ -69,18 +87,12 @@ namespace AIOFlipper
             }
         }
 
-        public static Item[] Items
+        public static List<Item> Items
         {
             get
             {
                 CouchPortal couchPortal = new CouchPortal();
                 return couchPortal.GetItems();
-            }
-
-            set
-            {
-                CouchPortal couchPortal = new CouchPortal();
-                couchPortal.UpdateItems(value);
             }
         }
 

@@ -59,31 +59,48 @@ namespace AIOFlipper
             return Account.FromJson(doc.ToString());
         }
 
-        public void UpdateItems(Item[] items)
+        public void UpdateItem(Item item)
         {
             CouchClient couchClient = new CouchClient();
 
+            string docId = item.Name;
+
             CouchDatabase db = couchClient.GetDatabase(itemsDB);
-            JDocument doc = db.GetDocument<JDocument>("items");
+            JDocument doc = db.GetDocument<JDocument>(docId);
 
-            JToken token = doc.GetValue("items");
-            token.Replace(JToken.Parse(Serialize.ToJson(items)));
+            JDocument newDoc = new JDocument(Serialize.ToJson(item));
+            newDoc.Rev = doc.Rev;
 
-            db.UpdateDocument(doc);
+            db.UpdateDocument(newDoc);
 
             couchClient = null;
         }
 
-        public Item[] GetItems()
+        public List<Item> GetItems()
+        {
+            List<Item> items = new List<Item>();
+            CouchClient couchClient = new CouchClient();
+
+            CouchDatabase db = couchClient.GetDatabase(itemsDB);
+            JObject viewResult = db.GetView("itemsDesignDoc", "getAllItems");
+
+            foreach (JDocument doc in viewResult.GetValue("rows"))
+            {
+                items.Add(Item.FromJson(doc.ToString()));
+            }
+            couchClient = null;
+
+            return items;
+        }
+
+        public Item GetItem(string name)
         {
             CouchClient couchClient = new CouchClient();
 
             CouchDatabase db = couchClient.GetDatabase(itemsDB);
-            JDocument doc = db.GetDocument<JDocument>("items");
+            JDocument doc = db.GetDocument<JDocument>(name);
 
-            couchClient = null;
-
-            return Item.FromJson(doc.GetValue("items").ToString());
+            return Item.FromJson(doc.ToString());
         }
 
         public void WriteSale(Sale sale)

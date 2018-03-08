@@ -11,7 +11,7 @@ namespace AIOFlipper
     {
         public static string ToJson(this Account self) => JsonConvert.SerializeObject(self, Converter.Settings);
 
-        public static string ToJson(this Item[] self) => JsonConvert.SerializeObject(self, Converter.Settings);
+        public static string ToJson(this Item self) => JsonConvert.SerializeObject(self, Converter.Settings);
 
         public static string ToJson(this Sale self) => JsonConvert.SerializeObject(self, Converter.Settings);
     }

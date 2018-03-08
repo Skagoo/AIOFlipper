@@ -4,11 +4,17 @@ namespace AIOFlipper
 {
     public partial class Item
     {
-        public static Item[] FromJson(string json) => JsonConvert.DeserializeObject<Item[]>(json, Converter.Settings);
+        public static Item FromJson(string json) => JsonConvert.DeserializeObject<Item>(json, Converter.Settings);
     }
 
     public partial class Item
     {
+        [JsonProperty("_id")]
+        public string Id { get; set; }
+
+        [JsonProperty("_rev")]
+        public string Rev { get; set; }
+
         [JsonProperty("name")]
         public string Name { get; set; }
 
@@ -42,8 +48,10 @@ namespace AIOFlipper
         [JsonProperty("itemImageUrl")]
         public string ItemImageUrl { get; set; }
 
-        public Item(string name, long flipchatBuyPrice, long flipchatSellPrice, long currentBuyPrice, long currentSellPrice, long priceIncrementValue, long priceDecrementValue, long minimalMargin, long buyLimit, long tier, string itemImageUrl)
+        public Item(string id, string rev, string name, long flipchatBuyPrice, long flipchatSellPrice, long currentBuyPrice, long currentSellPrice, long priceIncrementValue, long priceDecrementValue, long minimalMargin, long buyLimit, long tier, string itemImageUrl)
         {
+            Id = id;
+            Rev = rev;
             Name = name;
             FlipchatBuyPrice = flipchatBuyPrice;
             FlipchatSellPrice = flipchatSellPrice;
