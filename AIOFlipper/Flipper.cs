@@ -695,7 +695,7 @@ namespace AIOFlipper
             // Check if the previous item is already bought the max allowed times.
             // If not return the previous item and leave the tracker unchanged.
             // If it did reach the limit, try to get a new item and reset the tracker to 0.
-            Item previousItem = slot.GetItem();
+            //Item previousItem = slot.GetItem();
             //if (slot.BuyLimitTracker < previousItem.BuyLimit)
             //{
             //    return previousItem;
@@ -711,13 +711,17 @@ namespace AIOFlipper
             //    }
             //}
 
-
-            if (currentAccount.GetAvailableItems().Count > 0)
+            List<Item> availableItems = currentAccount.GetAvailableItems();
+            if (availableItems.Count > 0)
             {
                 // Get first item in availableItems.
                 // The list was sorted so the item with the highest margin would be first.
                 slot.BuyLimitTracker = 0;
-                return currentAccount.GetAvailableItems().First();
+
+                // Randomise taking a top margin one, and a random one to keep margins up to date.
+                Random random = new Random();
+                if (random.Next(0, 2) == 0) return availableItems.First();
+                else return availableItems[random.Next(0, availableItems.Count)];
             }
 
             return null;
