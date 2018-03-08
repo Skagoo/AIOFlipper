@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.Threading;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using OpenQA.Selenium.Firefox;
 
 namespace AIOFlipper
 {
@@ -25,9 +26,27 @@ namespace AIOFlipper
             form = new Form1();
 
             List<Thread> flipperThreads = new List<Thread>();
-
             List<Account> activeAccounts = new List<Account>();
+            Queue<FirefoxProfile> profileQueue = new Queue<FirefoxProfile>();
+
+            // Fill the profileQueue with firefoxProfiles
+            for (int j = 0; j < 5; j++)
+            {
+                string proxyIP = Environment.GetEnvironmentVariable("PROXY_IP_" + j);
+                string proxyPort = Environment.GetEnvironmentVariable("PROXY_PORT_" + j);
+
+                FirefoxProfile profile = new FirefoxProfile();
+                profile.SetPreference("network.proxy.type", 1);
+                profile.SetPreference("network.proxy.http", proxyIP);
+                profile.SetPreference("network.proxy.http_port", int.Parse(proxyPort));
+                profile.SetPreference("network.proxy.ssl", proxyIP);
+                profile.SetPreference("network.proxy.ssl_port", int.Parse(proxyPort));
+
+                profileQueue.Enqueue(profile);
+            }
+
             int i = 0;
+
             foreach (Account account in Accounts)
             {
                 if (account.IsActive)
@@ -40,7 +59,7 @@ namespace AIOFlipper
                     else
                     {
                         // 5 Accounts in the list, create a thread for those.
-                        flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray())));
+                        flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray(), profileQueue.Dequeue())));
 
                         // Set the counter to 1
                         i = 1;
@@ -54,7 +73,7 @@ namespace AIOFlipper
             }
 
             // Remaining Accounts in the list, create a thread for those.
-            flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray())));
+            flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray(), profileQueue.Dequeue())));
 
             foreach (Thread thread in flipperThreads)
             {
@@ -67,9 +86,9 @@ namespace AIOFlipper
             Application.Run(form);
         }
 
-        public static void StartFlipperThread(Account[] accounts)
+        public static void StartFlipperThread(Account[] accounts, FirefoxProfile profile)
         {
-            Flipper flipper = new Flipper(accounts);
+            Flipper flipper = new Flipper(accounts, profile);
             flipper.Start();
         }
 

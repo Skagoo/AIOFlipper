@@ -40,10 +40,12 @@ namespace AIOFlipper
             CouchDatabase db = couchClient.GetDatabase(accountsDB);
             JObject viewResult = db.GetView("accountsDesignDoc", "getAllAccounts");
 
-            foreach (JDocument doc in viewResult.GetValue("rows"))
+            foreach (JObject doc in viewResult.GetValue("rows"))
             {
-                accounts.Add(Account.FromJson(doc.ToString()));
+                JDocument accountDoc = db.GetDocument<JDocument>((doc.GetValue("id").ToString()));
+                accounts.Add(Account.FromJson(accountDoc.ToString()));
             }
+
             couchClient = null;
 
             return accounts;
@@ -84,9 +86,10 @@ namespace AIOFlipper
             CouchDatabase db = couchClient.GetDatabase(itemsDB);
             JObject viewResult = db.GetView("itemsDesignDoc", "getAllItems");
 
-            foreach (JDocument doc in viewResult.GetValue("rows"))
+            foreach (JObject doc in viewResult.GetValue("rows"))
             {
-                items.Add(Item.FromJson(doc.ToString()));
+                JDocument itemstDoc = db.GetDocument<JDocument>((doc.GetValue("id").ToString()));
+                items.Add(Item.FromJson(itemstDoc.ToString()));
             }
             couchClient = null;
 

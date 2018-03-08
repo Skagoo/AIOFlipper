@@ -16,6 +16,7 @@ namespace AIOFlipper
     class Flipper
     {
         public NgWebDriver driver;
+        private FirefoxProfile profile;
 
         private static Logger logger;
 
@@ -27,9 +28,10 @@ namespace AIOFlipper
         private const int timeBeforePriceUpdate = 20;
 
         // Constuctor
-        public Flipper(Account[] accounts)
+        public Flipper(Account[] accounts, FirefoxProfile profile)
         {
             this.accounts = accounts;
+            this.profile = profile;
 
             couchPortal = new CouchPortal();
         }
@@ -1031,18 +1033,21 @@ namespace AIOFlipper
                 // Instanciate the logger.
                 logger = LogManager.GetLogger("Flipper");
 
-                EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                FirefoxDriverService driverService = FirefoxDriverService.CreateDefaultService();
                 driverService.HideCommandPromptWindow = true;
 
-                IWebDriver edgeDriver = new EdgeDriver(driverService);
+                FirefoxOptions options = new FirefoxOptions();
+                options.Profile = profile;
+
+                IWebDriver firefoxDriver = new FirefoxDriver(driverService, options, TimeSpan.MaxValue);
 
                 logger.Debug("Started new edge driver");
 
                 // Configure timeouts (important since Protractor uses asynchronous client side scripts)
-                edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+                firefoxDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
 
                 // Initialize the NgWebDriver
-                driver = new NgWebDriver(edgeDriver);
+                driver = new NgWebDriver(firefoxDriver);
 
                 for (int i = 0; i < accounts.Length; i++)
                 {
@@ -1109,18 +1114,21 @@ namespace AIOFlipper
                 // Instanciate the logger.
                 logger = LogManager.GetLogger("Flipper");
 
-                EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                FirefoxDriverService driverService = FirefoxDriverService.CreateDefaultService();
                 driverService.HideCommandPromptWindow = true;
 
-                IWebDriver edgeDriver = new EdgeDriver(driverService);
+                FirefoxOptions options = new FirefoxOptions();
+                options.Profile = profile;
+
+                IWebDriver firefoxDriver = new FirefoxDriver(driverService, options, TimeSpan.MaxValue);
 
                 logger.Debug("Started new edge driver");
 
                 // Configure timeouts (important since Protractor uses asynchronous client side scripts)
-                edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+                firefoxDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
 
                 // Initialize the NgWebDriver
-                driver = new NgWebDriver(edgeDriver);
+                driver = new NgWebDriver(firefoxDriver);
 
                 for (int i = 0; i < accounts.Length; i++)
                 {
@@ -1154,18 +1162,21 @@ namespace AIOFlipper
                 // Instanciate the logger.
                 logger = LogManager.GetLogger("Flipper");
 
-                EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                FirefoxDriverService driverService = FirefoxDriverService.CreateDefaultService();
                 driverService.HideCommandPromptWindow = true;
 
-                IWebDriver edgeDriver = new EdgeDriver(driverService);
+                FirefoxOptions options = new FirefoxOptions();
+                options.Profile = profile;
+
+                IWebDriver firefoxDriver = new FirefoxDriver(driverService, options, TimeSpan.MaxValue);
 
                 logger.Debug("Started new edge driver");
 
                 // Configure timeouts (important since Protractor uses asynchronous client side scripts)
-                edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+                firefoxDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
 
                 // Initialize the NgWebDriver
-                driver = new NgWebDriver(edgeDriver);
+                driver = new NgWebDriver(firefoxDriver);
 
                 for (int i = 0; i < accounts.Length; i++)
                 {
@@ -1557,18 +1568,21 @@ namespace AIOFlipper
                     // Instanciate the logger.
                     logger = LogManager.GetLogger("Flipper");
 
-                    EdgeDriverService driverService = EdgeDriverService.CreateDefaultService();
+                    FirefoxDriverService driverService = FirefoxDriverService.CreateDefaultService();
                     driverService.HideCommandPromptWindow = true;
 
-                    IWebDriver edgeDriver = new EdgeDriver(driverService);
+                    FirefoxOptions options = new FirefoxOptions();
+                    options.Profile = profile;
 
-                    logger.Debug("Started new edge driver");
+                    IWebDriver firefoxDriver = new FirefoxDriver(driverService, options, TimeSpan.MaxValue);
+
+                    logger.Debug("Started new firefox driver");
 
                     // Configure timeouts (important since Protractor uses asynchronous client side scripts)
-                    edgeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
+                    firefoxDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
 
                     // Initialize the NgWebDriver
-                    driver = new NgWebDriver(edgeDriver);
+                    driver = new NgWebDriver(firefoxDriver);
 
                     for (int i = 0; i < accounts.Length; i++)
                     {

@@ -228,7 +228,7 @@ namespace AIOFlipper
                 }
             }
 
-            Item[] items = Program.Items;
+            List<Item> items = Program.Items;
             foreach (Item item in items)
             {
                 item.FlipchatBuyPrice = long.Parse(flipchatMarginsPrices.Dequeue()) * 1000;
@@ -239,9 +239,10 @@ namespace AIOFlipper
                     item.CurrentBuyPrice = item.FlipchatBuyPrice;
                     item.CurrentSellPrice = item.FlipchatSellPrice;
                 }
-            }
 
-            Program.Items = items;
+                CouchPortal couchPortal = new CouchPortal();
+                couchPortal.UpdateItem(item);
+            }
         }
 
         private void DisplaySettingsContent()
