@@ -65,11 +65,6 @@ namespace AIOFlipper
                 optionsQueue.Enqueue(options);
             }
 
-            //Account[] accountPack1 = Accounts.GetRange(0, 5).ToArray();
-            //Account[] accountPack2 = Accounts.GetRange(5, 5).ToArray();
-            //Account[] accountPack3 = Accounts.GetRange(10, 5).ToArray();
-            //Account[] accountPack4 = Accounts.GetRange(15, 2).ToArray();
-
             Thread thread1 = new Thread(() => StartFlipperThread(0, optionsQueue.Dequeue()));
             thread1.IsBackground = true;
             thread1.Start();
