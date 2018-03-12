@@ -59,13 +59,16 @@ namespace AIOFlipper
         [JsonProperty("tabReference")]
         public string TabReference { get; set; }
 
+        [JsonProperty("flipperThreadId")]
+        public long FlipperThreadId { get; set; }
+
         [JsonProperty("slots")]
         public Slot[] Slots { get; set; }
 
         [JsonProperty("lastItemBuys")]
         public string[] LastItemBuys { get; set; }
 
-        public Account(string id, string rev, string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, Slot[] slots, string[] lastItemBuys)
+        public Account(string id, string rev, string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, long flipperThreadId, Slot[] slots, string[] lastItemBuys)
         {
             Id = id;
             Rev = rev;
@@ -82,6 +85,7 @@ namespace AIOFlipper
             TotalValue = totalValue;
             MaxTier = maxTier;
             TabReference = tabReference;
+            FlipperThreadId = flipperThreadId;
             Slots = slots;
             LastItemBuys = lastItemBuys;
         }

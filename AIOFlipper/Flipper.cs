@@ -18,22 +18,31 @@ namespace AIOFlipper
         public NgWebDriver driver;
         private ChromeOptions options;
 
+        public int id;
+
         private static Logger logger;
 
         CouchPortal couchPortal;
 
-        private Account[] accounts;
         private Account currentAccount;
 
         private const int timeBeforePriceUpdate = 20;
 
         // Constuctor
-        public Flipper(Account[] accounts, ChromeOptions options)
+        public Flipper(int id, ChromeOptions options)
         {
-            this.accounts = accounts;
             this.options = options;
+            this.id = id;
 
             couchPortal = new CouchPortal();
+        }
+
+        private Account[] Accounts
+        {
+            get
+            {
+                return Program.Accounts.ToArray();
+            }
         }
 
         // Methods
@@ -1047,22 +1056,22 @@ namespace AIOFlipper
                 // Initialize the NgWebDriver
                 driver = new NgWebDriver(chromeDriver);
 
-                for (int i = 0; i < accounts.Length; i++)
+                for (int i = 0; i < Accounts.Length; i++)
                 {
                     // Execute some JavaScript to open a new window
                     ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
                     // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                    accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
+                    Accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
 
                     // Switch our driver to the new tab's window handle
-                    driver.SwitchTo().Window(accounts[i].TabReference);
+                    driver.SwitchTo().Window(Accounts[i].TabReference);
 
                     // Lets navigate to the RuneScape Companion web app in our new tab
-                    GoToRuneScapeCompanionPage(accounts[i]);
+                    GoToRuneScapeCompanionPage(Accounts[i]);
 
                     // Login the currentAccount
-                    Login(accounts[i]);
+                    Login(Accounts[i]);
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
@@ -1075,7 +1084,7 @@ namespace AIOFlipper
 
             // Reslove issue with wrong tab assignment
             // Reslove issue with wrong tab assignment
-            // Aassign the correct tabs for the accounts
+            // Aassign the correct tabs for the Accounts
             // We do this based on the world parameter in the url
             // Start J on 1 since the tab with index 0 will be the blank starting tab
             try
@@ -1091,12 +1100,12 @@ namespace AIOFlipper
                     long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
 
                     // Get the matching account based on the world
-                    for (int k = 0; k < accounts.Length; k++)
+                    for (int k = 0; k < Accounts.Length; k++)
                     {
-                        if (accounts[k].World == world)
+                        if (Accounts[k].World == world)
                         {
-                            // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
-                            accounts[k].TabReference = driver.CurrentWindowHandle;
+                            // Assign the current window handle to the same index in the tabs list as the index of the account in the Accounts list.
+                            Accounts[k].TabReference = driver.CurrentWindowHandle;
                         }
                     }
                 }
@@ -1125,22 +1134,22 @@ namespace AIOFlipper
                 // Initialize the NgWebDriver
                 driver = new NgWebDriver(chromeDriver);
 
-                for (int i = 0; i < accounts.Length; i++)
+                for (int i = 0; i < Accounts.Length; i++)
                 {
                     // Execute some JavaScript to open a new window
                     ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
                     // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                    accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
+                    Accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
 
                     // Switch our driver to the new tab's window handle
-                    driver.SwitchTo().Window(accounts[i].TabReference);
+                    driver.SwitchTo().Window(Accounts[i].TabReference);
 
                     // Lets navigate to the RuneScape Companion web app in our new tab
-                    GoToRuneScapeCompanionPage(accounts[i]);
+                    GoToRuneScapeCompanionPage(Accounts[i]);
 
                     // Login the currentAccount
-                    Login(accounts[i]);
+                    Login(Accounts[i]);
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
@@ -1170,22 +1179,22 @@ namespace AIOFlipper
                 // Initialize the NgWebDriver
                 driver = new NgWebDriver(chromeDriver);
 
-                for (int i = 0; i < accounts.Length; i++)
+                for (int i = 0; i < Accounts.Length; i++)
                 {
                     // Execute some JavaScript to open a new window
                     ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
                     // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                    accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
+                    Accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
 
                     // Switch our driver to the new tab's window handle
-                    driver.SwitchTo().Window(accounts[i].TabReference);
+                    driver.SwitchTo().Window(Accounts[i].TabReference);
 
                     // Lets navigate to the RuneScape Companion web app in our new tab
-                    GoToRuneScapeCompanionPage(accounts[i]);
+                    GoToRuneScapeCompanionPage(Accounts[i]);
 
                     // Login the currentAccount
-                    Login(accounts[i]);
+                    Login(Accounts[i]);
 
                     // Open the Grand Exchange page
                     OpenGrandExchange();
@@ -1573,25 +1582,25 @@ namespace AIOFlipper
                     // Initialize the NgWebDriver
                     driver = new NgWebDriver(chromeDriver);
 
-                    for (int i = 0; i < accounts.Length; i++)
+                    for (int i = 0; i < Accounts.Length; i++)
                     {
                         // Set the currentAccount to tempAccount
-                        currentAccount = accounts[i];
+                        currentAccount = Accounts[i];
 
                         // Execute some JavaScript to open a new window
                         ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
 
                         // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                        accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
+                        Accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
 
                         // Switch our driver to the new tab's window handle
-                        driver.SwitchTo().Window(accounts[i].TabReference);
+                        driver.SwitchTo().Window(Accounts[i].TabReference);
 
                         // Lets navigate to the RuneScape Companion web app in our new tab
-                        GoToRuneScapeCompanionPage(accounts[i]);
+                        GoToRuneScapeCompanionPage(Accounts[i]);
 
                         // Login the current Account
-                        Login(accounts[i]);
+                        Login(Accounts[i]);
 
                         // Open the Grand Exchange page
                         OpenGrandExchange();
@@ -1609,17 +1618,17 @@ namespace AIOFlipper
         {
             do
             {
-                for (int i = 0; i < accounts.Length; i++)
+                for (int i = 0; i < Accounts.Length; i++)
                 {
                     // Check if the first currentAccount has passed already.
-                    // If so, save the currentAccount to the accounts array to save the info before overriding the currentAccount varraible.
+                    // If so, save the currentAccount to the Accounts array to save the info before overriding the currentAccount varraible.
                     if (i > 0)
                     {
-                        accounts[i - 1] = currentAccount;
+                        Accounts[i - 1] = currentAccount;
                     }
 
                     // Get the correct currentAccount
-                    currentAccount = accounts[i];
+                    currentAccount = Accounts[i];
 
                     try
                     {
@@ -1641,7 +1650,7 @@ namespace AIOFlipper
                     {
                         try
                         {
-                            // The correct tab was not found, assign the correct tabs for the accounts
+                            // The correct tab was not found, assign the correct tabs for the Accounts
                             // We do this based on the world parameter in the url
                             // Start J on 1 since the tab with index 0 will be the blank starting tab
                             for (int j = 1; j < driver.WindowHandles.Count; j++)
@@ -1655,12 +1664,12 @@ namespace AIOFlipper
                                 long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
 
                                 // Get the matching account based on the world
-                                for (int k = 0; k < accounts.Length; k++)
+                                for (int k = 0; k < Accounts.Length; k++)
                                 {
-                                    if (accounts[k].World == world)
+                                    if (Accounts[k].World == world)
                                     {
-                                        // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
-                                        accounts[k].TabReference = driver.CurrentWindowHandle;
+                                        // Assign the current window handle to the same index in the tabs list as the index of the account in the Accounts list.
+                                        Accounts[k].TabReference = driver.CurrentWindowHandle;
                                     }
                                 }
                             }
@@ -2111,7 +2120,7 @@ namespace AIOFlipper
                 }
 
                 long totalValue = 0;
-                foreach (Account account in accounts)
+                foreach (Account account in Accounts)
                 {
                     if (account.IsActive)
                     {
