@@ -861,7 +861,7 @@ namespace AIOFlipper
                     currentAccount.ConnectionRefused = false;
                     UpdateAccount(currentAccount);
                 }
-                catch (NoSuchElementException)
+                catch (DisconnectedFromRSCompanionException)
                 {
                     currentAccount.ConnectionRefused = true;
                     UpdateAccount(currentAccount);
