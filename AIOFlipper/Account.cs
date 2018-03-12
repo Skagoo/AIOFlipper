@@ -62,13 +62,16 @@ namespace AIOFlipper
         [JsonProperty("flipperThreadId")]
         public long FlipperThreadId { get; set; }
 
+        [JsonProperty("connectionRefused")]
+        public bool ConnectionRefused { get; set; }
+
         [JsonProperty("slots")]
         public Slot[] Slots { get; set; }
 
         [JsonProperty("lastItemBuys")]
         public string[] LastItemBuys { get; set; }
 
-        public Account(string id, string rev, string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, long flipperThreadId, Slot[] slots, string[] lastItemBuys)
+        public Account(string id, string rev, string username, string email, string password, string authKey, bool isActive, long world, DateTime cooldownUntil, DateTime startTime, long moneyPouchValue, long slotsValue, long totalValue, long maxTier, string tabReference, long flipperThreadId, bool connectionRefused, Slot[] slots, string[] lastItemBuys)
         {
             Id = id;
             Rev = rev;
@@ -86,6 +89,7 @@ namespace AIOFlipper
             MaxTier = maxTier;
             TabReference = tabReference;
             FlipperThreadId = flipperThreadId;
+            ConnectionRefused = connectionRefused;
             Slots = slots;
             LastItemBuys = lastItemBuys;
         }

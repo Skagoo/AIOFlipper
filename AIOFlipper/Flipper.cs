@@ -825,45 +825,14 @@ namespace AIOFlipper
             driver.WrappedDriver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", account.World));
         }
 
-        private void Login()
-        {
-            string usernameElementCsss = (string)Program.Elements["elements"][0]["login_form"][0]["css_selector"];
-            string passwordElementCsss = (string)Program.Elements["elements"][0]["login_form"][1]["css_selector"];
-            string authElementCsss = (string)Program.Elements["elements"][0]["login_form"][2]["css_selector"];
-            string savePasswordNoElementCsss = (string)Program.Elements["elements"][0]["login_form"][3]["css_selector"];
-
-            try
-            {
-                IWebElement usernameElement = driver.WrappedDriver.FindElement(By.CssSelector(usernameElementCsss), 30);
-                IWebElement passwordElement = driver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
-
-                usernameElement.SendKeys(currentAccount.Email);
-                passwordElement.SendKeys(currentAccount.Password);
-                passwordElement.SendKeys(Keys.Enter);
-
-                TwoFactorAuth tfa = new TwoFactorAuth();
-
-                IWebElement authElement = driver.WrappedDriver.FindElement(By.CssSelector(authElementCsss), 20);
-                authElement.SendKeys("" + tfa.GetCode(currentAccount.AuthKey));
-                authElement.SendKeys(Keys.Enter);
-
-                IWebElement savePasswordNoElement = driver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
-                savePasswordNoElement.Click();
-            }
-            catch (Exception)
-            {
-                driver.WrappedDriver.Navigate().Refresh();
-                //Console.Beep();
-                Login();
-            }
-        }
-
         private void Login(Account account)
         {
             string usernameElementCsss = (string)Program.Elements["elements"][0]["login_form"][0]["css_selector"];
             string passwordElementCsss = (string)Program.Elements["elements"][0]["login_form"][1]["css_selector"];
             string authElementCsss = (string)Program.Elements["elements"][0]["login_form"][2]["css_selector"];
             string savePasswordNoElementCsss = (string)Program.Elements["elements"][0]["login_form"][3]["css_selector"];
+
+            string geTabElementCsss = (string)Program.Elements["elements"][1]["menu_tabs"][0]["css_selector"];
 
             try
             {
@@ -883,6 +852,20 @@ namespace AIOFlipper
 
                 IWebElement savePasswordNoElement = driver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
                 savePasswordNoElement.Click();
+
+                try
+                {
+                    driver.FindElement(By.CssSelector(geTabElementCsss), 10);
+
+                    // Success
+                    currentAccount.ConnectionRefused = false;
+                    UpdateAccount(currentAccount);
+                }
+                catch (NoSuchElementException)
+                {
+                    currentAccount.ConnectionRefused = true;
+                    UpdateAccount(currentAccount);
+                }
             }
             catch (Exception)
             {
@@ -1707,40 +1690,157 @@ namespace AIOFlipper
                         return;
                     }
 
-                    for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)
+                    // Check if the account has the connectionRefused property on true.
+                    // If so, try to log the account in and skip checking the account for now
+                    // Else, continue flipping with the account
+                    if (currentAccount.ConnectionRefused)
                     {
-                        foreach (Slot slot in currentAccount.Slots)
+                        Login(currentAccount);
+
+                        if (!currentAccount.ConnectionRefused)
                         {
-                            bool accountHasChangedValues = false;
-
-                            string slotState = CheckSlotState(slot.Number);
-                            string oldSlotState = slot.SlotState;
-
-                            if (slot.SlotState != slotState)
+                            OpenGrandExchange();
+                        }
+                    }
+                    else
+                    {
+                        for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)
+                        {
+                            foreach (Slot slot in currentAccount.Slots)
                             {
-                                slot.SlotState = slotState;
-                                UpdateAccount(currentAccount);
-                            }
+                                bool accountHasChangedValues = false;
 
-                            switch (slotState)
-                            {
-                                case "empty":
-                                    {
-                                        // Check if there are items available for the account. If not, skip the slot.
-                                        if (currentAccount.GetAvailableItems().Count > 0)
+                                string slotState = CheckSlotState(slot.Number);
+                                string oldSlotState = slot.SlotState;
+
+                                if (slot.SlotState != slotState)
+                                {
+                                    slot.SlotState = slotState;
+                                    UpdateAccount(currentAccount);
+                                }
+
+                                switch (slotState)
+                                {
+                                    case "empty":
                                         {
-                                            // Get item to buy + update slot value's: itemName, Value.
-                                            Item itemToBuy = GetItemToBuy(slot);
-
-                                            // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
-                                            if (itemToBuy != null)
+                                            // Check if there are items available for the account. If not, skip the slot.
+                                            if (currentAccount.GetAvailableItems().Count > 0)
                                             {
-                                                slot.ItemName = itemToBuy.Name;
+                                                // Get item to buy + update slot value's: itemName, Value.
+                                                Item itemToBuy = GetItemToBuy(slot);
 
-                                                // Update the slotValue or currentBuyPrice if necessary.
-                                                CheckUpdateItemAndSlot(slot.Number);
+                                                // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
+                                                if (itemToBuy != null)
+                                                {
+                                                    slot.ItemName = itemToBuy.Name;
 
-                                                // Buy item
+                                                    // Update the slotValue or currentBuyPrice if necessary.
+                                                    CheckUpdateItemAndSlot(slot.Number);
+
+                                                    // Buy item
+                                                    BuyItem(slot);
+
+                                                    // Update the slotState
+                                                    slot.SlotState = "buying";
+
+                                                    // Update the slot's time
+                                                    slot.Time = DateTime.Now;
+
+                                                    // Log
+                                                    logger.Debug(
+                                                        "Slot {0} is now buying {1} for {2} ({3}K)",
+                                                        slot.Number,
+                                                        slot.ItemName,
+                                                        slot.Value,
+                                                        slot.Value / 1000
+                                                    );
+
+                                                    accountHasChangedValues = true;
+                                                }
+                                            }
+
+                                            break;
+                                        }
+                                    case "aborted buying":
+                                        {
+                                            // Get the name of the aborted item.
+                                            slot.ItemName = GetAbortedItemName(slot);
+
+                                            // Update the slotValue or currentBuyPrice if necessary.
+                                            CheckUpdateItemAndSlot(slot.Number);
+
+                                            // Collect the item.
+                                            CollectSlot(slot);
+
+                                            // Update the slotState
+                                            slot.SlotState = "empty";
+
+                                            // Buy the item for the updated price.
+                                            BuyItem(slot);
+
+                                            // Update the slotState
+                                            slot.SlotState = "buying";
+
+                                            // Update the slot's time
+                                            slot.Time = DateTime.Now;
+
+                                            accountHasChangedValues = true;
+
+                                            break;
+                                        }
+                                    case "aborted selling":
+                                        {
+                                            // Get the name of the aborted item.
+                                            slot.ItemName = GetAbortedItemName(slot);
+
+                                            // Update the slotValue or currentBuyPrice if necessary.
+                                            CheckUpdateItemAndSlot(slot.Number);
+
+                                            // Collect the cash.
+                                            CollectSlot(slot);
+
+                                            // Update the slotState
+                                            slot.SlotState = "empty";
+
+                                            // Sell the item for the updated price.
+                                            SellItem(slot);
+
+                                            // Update the slotState
+                                            slot.SlotState = "selling";
+
+                                            // Update the slot's time
+                                            slot.Time = DateTime.Now;
+
+                                            accountHasChangedValues = true;
+
+                                            break;
+                                        }
+                                    case "buying":
+                                        {
+                                            if (CheckUpdateItemAndSlot(slot.Number))
+                                            {
+                                                // Log
+                                                logger.Debug(
+                                                    "Aborting slot {0} containing {1}, which was {2}",
+                                                    slot.Number,
+                                                    slot.ItemName,
+                                                    slot.SlotState
+                                                );
+
+                                                // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
+                                                // Abort the offer.
+                                                AbortSlot(slot);
+
+                                                // Log
+                                                logger.Debug(
+                                                    "Aborting slot {0} was successful",
+                                                    slot.Number
+                                                );
+
+                                                // Update the slotState
+                                                slot.SlotState = "aborted buying";
+
+                                                // Buy the item.
                                                 BuyItem(slot);
 
                                                 // Update the slotState
@@ -1751,8 +1851,9 @@ namespace AIOFlipper
 
                                                 // Log
                                                 logger.Debug(
-                                                    "Slot {0} is now buying {1} for {2} ({3}K)",
+                                                    "Slot {0} is now {1} {2} for {3} ({4}K)",
                                                     slot.Number,
+                                                    slot.SlotState,
                                                     slot.ItemName,
                                                     slot.Value,
                                                     slot.Value / 1000
@@ -1760,137 +1861,110 @@ namespace AIOFlipper
 
                                                 accountHasChangedValues = true;
                                             }
+
+                                            break;
                                         }
-
-                                        break;
-                                    }
-                                case "aborted buying":
-                                    {
-                                        // Get the name of the aborted item.
-                                        slot.ItemName = GetAbortedItemName(slot);
-
-                                        // Update the slotValue or currentBuyPrice if necessary.
-                                        CheckUpdateItemAndSlot(slot.Number);
-
-                                        // Collect the item.
-                                        CollectSlot(slot);
-
-                                        // Update the slotState
-                                        slot.SlotState = "empty";
-
-                                        // Buy the item for the updated price.
-                                        BuyItem(slot);
-
-                                        // Update the slotState
-                                        slot.SlotState = "buying";
-
-                                        // Update the slot's time
-                                        slot.Time = DateTime.Now;
-
-                                        accountHasChangedValues = true;
-
-                                        break;
-                                    }
-                                case "aborted selling":
-                                    {
-                                        // Get the name of the aborted item.
-                                        slot.ItemName = GetAbortedItemName(slot);
-
-                                        // Update the slotValue or currentBuyPrice if necessary.
-                                        CheckUpdateItemAndSlot(slot.Number);
-
-                                        // Collect the cash.
-                                        CollectSlot(slot);
-
-                                        // Update the slotState
-                                        slot.SlotState = "empty";
-
-                                        // Sell the item for the updated price.
-                                        SellItem(slot);
-
-                                        // Update the slotState
-                                        slot.SlotState = "selling";
-
-                                        // Update the slot's time
-                                        slot.Time = DateTime.Now;
-
-                                        accountHasChangedValues = true;
-
-                                        break;
-                                    }
-                                case "buying":
-                                    {
-                                        if (CheckUpdateItemAndSlot(slot.Number))
+                                    case "selling":
                                         {
-                                            // Log
-                                            logger.Debug(
-                                                "Aborting slot {0} containing {1}, which was {2}",
-                                                slot.Number,
-                                                slot.ItemName,
-                                                slot.SlotState
-                                            );
+                                            if (CheckUpdateItemAndSlot(slot.Number))
+                                            {
+                                                // Log
+                                                logger.Debug(
+                                                    "Aborting slot {0} containing {1}, which was {2}",
+                                                    slot.Number,
+                                                    slot.ItemName,
+                                                    slot.SlotState
+                                                );
 
-                                            // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
-                                            // Abort the offer.
-                                            AbortSlot(slot);
+                                                // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
+                                                // Abort the offer.
+                                                AbortSlot(slot);
 
-                                            // Log
-                                            logger.Debug(
-                                                "Aborting slot {0} was successful",
-                                                slot.Number
-                                            );
+                                                // Log
+                                                logger.Debug(
+                                                    "Aborting slot {0} was successful",
+                                                    slot.Number
+                                                );
 
-                                            // Update the slotState
-                                            slot.SlotState = "aborted buying";
+                                                // Update the slotState
+                                                slot.SlotState = "aborted selling";
 
-                                            // Buy the item.
-                                            BuyItem(slot);
+                                                // Sell the item.
+                                                SellItem(slot);
 
-                                            // Update the slotState
-                                            slot.SlotState = "buying";
+                                                // Update the slotState
+                                                slot.SlotState = "selling";
 
-                                            // Update the slot's time
-                                            slot.Time = DateTime.Now;
+                                                // Update the slot's time
+                                                slot.Time = DateTime.Now;
 
-                                            // Log
-                                            logger.Debug(
-                                                "Slot {0} is now {1} {2} for {3} ({4}K)",
+                                                // Log
+                                                logger.Debug(
+                                                    "Slot {0} is now {1} {2} for {3} ({4}K)",
+                                                    slot.Number,
+                                                    slot.SlotState,
+                                                    slot.ItemName,
+                                                    slot.Value,
+                                                    slot.Value / 1000
+                                                );
+
+                                                accountHasChangedValues = true;
+                                            }
+
+                                            break;
+                                        }
+                                    case "complete buying":
+                                        {
+                                            CheckUpdateItemAndSlot(slot.Number);
+
+                                            string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
                                                 slot.Number,
                                                 slot.SlotState,
                                                 slot.ItemName,
                                                 slot.Value,
-                                                slot.Value / 1000
+                                                slot.Value / 1000,
+                                                DateTime.Now - slot.Time
                                             );
 
-                                            accountHasChangedValues = true;
-                                        }
-
-                                        break;
-                                    }
-                                case "selling":
-                                    {
-                                        if (CheckUpdateItemAndSlot(slot.Number))
-                                        {
-                                            // Log
-                                            logger.Debug(
-                                                "Aborting slot {0} containing {1}, which was {2}",
+                                            string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
                                                 slot.Number,
+                                                slot.SlotState,
                                                 slot.ItemName,
-                                                slot.SlotState
+                                                slot.Value
                                             );
 
-                                            // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
-                                            // Abort the offer.
-                                            AbortSlot(slot);
+                                            // Log
+                                            logger.Info(eventLogLong);
+
 
                                             // Log
                                             logger.Debug(
-                                                "Aborting slot {0} was successful",
+                                                "Collecting {0} from slot {1}",
+                                                slot.ItemName,
                                                 slot.Number
                                             );
 
+                                            // Collect the item from the slot.
+                                            CollectSlot(slot);
+
+                                            // Log
+                                            logger.Debug(
+                                                "Collecting {0} from slot {1} was successful",
+                                                slot.ItemName,
+                                                slot.Number
+                                            );
+
+                                            // Update last buy of item
+                                            currentAccount.UpdateLastBuy(slot);
+
+                                            // Add 1 to the slots BuyLimitTracker
+                                            slot.BuyLimitTracker++;
+
                                             // Update the slotState
-                                            slot.SlotState = "aborted selling";
+                                            slot.SlotState = "empty";
+
+                                            // Update the slotValue
+                                            slot.Value = slot.GetItem().CurrentSellPrice;
 
                                             // Sell the item.
                                             SellItem(slot);
@@ -1912,217 +1986,143 @@ namespace AIOFlipper
                                             );
 
                                             accountHasChangedValues = true;
+
+                                            break;
                                         }
-
-                                        break;
-                                    }
-                                case "complete buying":
-                                    {
-                                        CheckUpdateItemAndSlot(slot.Number);
-
-                                        string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
-                                            slot.Number,
-                                            slot.SlotState,
-                                            slot.ItemName,
-                                            slot.Value,
-                                            slot.Value / 1000,
-                                            DateTime.Now - slot.Time
-                                        );
-
-                                        string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
-                                            slot.Number,
-                                            slot.SlotState,
-                                            slot.ItemName,
-                                            slot.Value
-                                        );
-
-                                        // Log
-                                        logger.Info(eventLogLong);
-
-
-                                        // Log
-                                        logger.Debug(
-                                            "Collecting {0} from slot {1}",
-                                            slot.ItemName,
-                                            slot.Number
-                                        );
-
-                                        // Collect the item from the slot.
-                                        CollectSlot(slot);
-
-                                        // Log
-                                        logger.Debug(
-                                            "Collecting {0} from slot {1} was successful",
-                                            slot.ItemName,
-                                            slot.Number
-                                        );
-
-                                        // Update last buy of item
-                                        currentAccount.UpdateLastBuy(slot);
-
-                                        // Add 1 to the slots BuyLimitTracker
-                                        slot.BuyLimitTracker++;
-
-                                        // Update the slotState
-                                        slot.SlotState = "empty";
-
-                                        // Update the slotValue
-                                        slot.Value = slot.GetItem().CurrentSellPrice;
-
-                                        // Sell the item.
-                                        SellItem(slot);
-
-                                        // Update the slotState
-                                        slot.SlotState = "selling";
-
-                                        // Update the slot's time
-                                        slot.Time = DateTime.Now;
-
-                                        // Log
-                                        logger.Debug(
-                                            "Slot {0} is now {1} {2} for {3} ({4}K)",
-                                            slot.Number,
-                                            slot.SlotState,
-                                            slot.ItemName,
-                                            slot.Value,
-                                            slot.Value / 1000
-                                        );
-
-                                        accountHasChangedValues = true;
-
-                                        break;
-                                    }
-                                case "complete selling":
-                                    {
-                                        CheckUpdateItemAndSlot(slot.Number);
-
-                                        string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
-                                            slot.Number,
-                                            slot.SlotState,
-                                            slot.ItemName,
-                                            slot.Value,
-                                            slot.Value / 1000,
-                                            DateTime.Now - slot.Time
-                                        );
-
-                                        string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
-                                            slot.Number,
-                                            slot.SlotState,
-                                            slot.ItemName,
-                                            slot.Value
-                                        );
-
-                                        // Log
-                                        logger.Info(eventLogLong);
-
-                                        // Log
-                                        logger.Debug(
-                                            "Collecting {0} ({1}K) from slot {2}",
-                                            slot.Value,
-                                            slot.Value / 1000,
-                                            slot.Number
-                                        );
-
-                                        // Collect the cash from the slot.
-                                        CollectSlot(slot);
-
-                                        // Log
-                                        logger.Debug(
-                                            "Collecting {0} ({1}K) from slot {2} was successful",
-                                            slot.Value,
-                                            slot.Value / 1000,
-                                            slot.Number
-                                        );
-
-                                        couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, slot.GetItem().Tier, DateTime.Now));
-
-                                        // Update the slotState
-                                        slot.SlotState = "empty";
-
-                                        // Check if the account has items available.
-                                        // If not, the slot remains empty.
-                                        if (currentAccount.GetAvailableItems().Count > 0)
+                                    case "complete selling":
                                         {
-                                            // Get item to buy + update slot value's: itemName, Value.
-                                            Item itemToBuy = GetItemToBuy(slot);
+                                            CheckUpdateItemAndSlot(slot.Number);
 
-                                            // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
-                                            if (itemToBuy != null)
+                                            string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
+                                                slot.Number,
+                                                slot.SlotState,
+                                                slot.ItemName,
+                                                slot.Value,
+                                                slot.Value / 1000,
+                                                DateTime.Now - slot.Time
+                                            );
+
+                                            string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
+                                                slot.Number,
+                                                slot.SlotState,
+                                                slot.ItemName,
+                                                slot.Value
+                                            );
+
+                                            // Log
+                                            logger.Info(eventLogLong);
+
+                                            // Log
+                                            logger.Debug(
+                                                "Collecting {0} ({1}K) from slot {2}",
+                                                slot.Value,
+                                                slot.Value / 1000,
+                                                slot.Number
+                                            );
+
+                                            // Collect the cash from the slot.
+                                            CollectSlot(slot);
+
+                                            // Log
+                                            logger.Debug(
+                                                "Collecting {0} ({1}K) from slot {2} was successful",
+                                                slot.Value,
+                                                slot.Value / 1000,
+                                                slot.Number
+                                            );
+
+                                            couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, slot.GetItem().Tier, DateTime.Now));
+
+                                            // Update the slotState
+                                            slot.SlotState = "empty";
+
+                                            // Check if the account has items available.
+                                            // If not, the slot remains empty.
+                                            if (currentAccount.GetAvailableItems().Count > 0)
                                             {
-                                                slot.ItemName = itemToBuy.Name;
+                                                // Get item to buy + update slot value's: itemName, Value.
+                                                Item itemToBuy = GetItemToBuy(slot);
 
-                                                // Update the slotValue or currentBuyPrice if necessary.
-                                                CheckUpdateItemAndSlot(slot.Number);
+                                                // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
+                                                if (itemToBuy != null)
+                                                {
+                                                    slot.ItemName = itemToBuy.Name;
 
-                                                // Buy item
-                                                BuyItem(slot);
+                                                    // Update the slotValue or currentBuyPrice if necessary.
+                                                    CheckUpdateItemAndSlot(slot.Number);
 
-                                                // Update the slotState
-                                                slot.SlotState = "buying";
+                                                    // Buy item
+                                                    BuyItem(slot);
 
-                                                // Update the slot's time
-                                                slot.Time = DateTime.Now;
+                                                    // Update the slotState
+                                                    slot.SlotState = "buying";
 
-                                                // Log
-                                                logger.Debug(
-                                                    "Slot {0} is now buying {1} for {2} ({4}K)",
-                                                    slot.Number,
-                                                    slot.ItemName,
-                                                    slot.Value,
-                                                    slot.Value / 1000
-                                                );
+                                                    // Update the slot's time
+                                                    slot.Time = DateTime.Now;
+
+                                                    // Log
+                                                    logger.Debug(
+                                                        "Slot {0} is now buying {1} for {2} ({4}K)",
+                                                        slot.Number,
+                                                        slot.ItemName,
+                                                        slot.Value,
+                                                        slot.Value / 1000
+                                                    );
+                                                }
                                             }
+
+                                            accountHasChangedValues = true;
+
+                                            break;
                                         }
-
-                                        accountHasChangedValues = true;
-
-                                        break;
-                                    }
-                                case "complete":
-                                    {
-                                        // This state can be read from the source of the RuneScape Companion web app due to a bug on their behalf.
-                                        // Workaround, manually change the state based on what the slot state was before.
-                                        if (oldSlotState == "buying")
+                                    case "complete":
                                         {
-                                            slot.SlotState = "complete buying";
-                                            goto case "complete buying";
-                                        }
-                                        else if (oldSlotState == "selling")
-                                        {
-                                            slot.SlotState = "complete selling";
-                                            goto case "complete selling";
-                                        }
+                                            // This state can be read from the source of the RuneScape Companion web app due to a bug on their behalf.
+                                            // Workaround, manually change the state based on what the slot state was before.
+                                            if (oldSlotState == "buying")
+                                            {
+                                                slot.SlotState = "complete buying";
+                                                goto case "complete buying";
+                                            }
+                                            else if (oldSlotState == "selling")
+                                            {
+                                                slot.SlotState = "complete selling";
+                                                goto case "complete selling";
+                                            }
 
+                                            break;
+                                        }
+                                    default:
                                         break;
-                                    }
-                                default:
-                                    break;
-                            }
+                                }
 
-                            if (accountHasChangedValues == true)
-                            {
-                                OpenBank();
-                                OpenGrandExchange();
-                                currentAccount.MoneyPouchValue = GetMoneyPouchValue();
+                                if (accountHasChangedValues == true)
+                                {
+                                    OpenBank();
+                                    OpenGrandExchange();
+                                    currentAccount.MoneyPouchValue = GetMoneyPouchValue();
 
-                                currentAccount.SlotsValue = GetSlotsValue();
+                                    currentAccount.SlotsValue = GetSlotsValue();
 
-                                currentAccount.TotalValue = currentAccount.MoneyPouchValue + currentAccount.SlotsValue;
-                                UpdateAccount(currentAccount);
-                                accountHasChangedValues = false;
+                                    currentAccount.TotalValue = currentAccount.MoneyPouchValue + currentAccount.SlotsValue;
+                                    UpdateAccount(currentAccount);
+                                    accountHasChangedValues = false;
 
-                                logger.Debug(
-                                    "Updated account's value properties: MoneyPouchValue {0} ({1}K) | SlotsValue {2} ({3}K) | TotalValue {4} ({5}K)",
-                                    currentAccount.MoneyPouchValue,
-                                    currentAccount.MoneyPouchValue / 1000,
-                                    currentAccount.SlotsValue,
-                                    currentAccount.SlotsValue / 1000,
-                                    currentAccount.TotalValue,
-                                    currentAccount.TotalValue / 1000
-                                );
+                                    logger.Debug(
+                                        "Updated account's value properties: MoneyPouchValue {0} ({1}K) | SlotsValue {2} ({3}K) | TotalValue {4} ({5}K)",
+                                        currentAccount.MoneyPouchValue,
+                                        currentAccount.MoneyPouchValue / 1000,
+                                        currentAccount.SlotsValue,
+                                        currentAccount.SlotsValue / 1000,
+                                        currentAccount.TotalValue,
+                                        currentAccount.TotalValue / 1000
+                                    );
+                                }
                             }
                         }
                     }
+
+                    
 
                     // Switch to bank back to GE, to avoid logging out.
                     //OpenBank();
