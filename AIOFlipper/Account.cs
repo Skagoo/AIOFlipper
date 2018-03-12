@@ -205,9 +205,13 @@ namespace AIOFlipper
                             // Find the correct item in the list of items.
                             if (LastItemBuys[i].Split(';')[0] == items[j].Name)
                             {
-                                // Add the item to the list of available items.
-                                availableItems.Add(items[j]);
-                                break;
+                                // Check if the tier is allowed
+                                if (items[j].Tier <= MaxTier)
+                                {
+                                    // Add the item to the list of available items.
+                                    availableItems.Add(items[j]);
+                                    break;
+                                }
                             }
                         }
                     }

@@ -4,7 +4,8 @@ using System.Windows.Forms;
 using System.Threading;
 using Newtonsoft.Json.Linq;
 using System.IO;
-using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium;
 
 namespace AIOFlipper
 {
@@ -27,68 +28,53 @@ namespace AIOFlipper
 
             List<Thread> flipperThreads = new List<Thread>();
             List<Account> activeAccounts = new List<Account>();
-            Queue<FirefoxProfile> profileQueue = new Queue<FirefoxProfile>();
+            Queue<ChromeOptions> optionsQueue = new Queue<ChromeOptions>();
 
-            // Fill the profileQueue with firefoxProfiles
+            // Fill the optionsQueue with ChromeOptions
             for (int j = 0; j < 5; j++)
             {
                 string proxyIP = Environment.GetEnvironmentVariable("PROXY_IP_" + j);
                 string proxyPort = Environment.GetEnvironmentVariable("PROXY_PORT_" + j);
 
-                FirefoxProfile profile = new FirefoxProfile();
-                profile.SetPreference("network.proxy.type", 1);
-                profile.SetPreference("network.proxy.http", proxyIP);
-                profile.SetPreference("network.proxy.http_port", int.Parse(proxyPort));
-                profile.SetPreference("network.proxy.ssl", proxyIP);
-                profile.SetPreference("network.proxy.ssl_port", int.Parse(proxyPort));
+                Proxy proxy = new Proxy();
+                proxy.HttpProxy = proxyIP + ":" + proxyPort;
+                proxy.SslProxy = proxyIP + ":" + proxyPort;
 
-                profileQueue.Enqueue(profile);
+                ChromeOptions options = new ChromeOptions();
+                options.Proxy = proxy;
+
+                optionsQueue.Enqueue(options);
             }
 
-            int i = 0;
+            Account[] accountPack1 = Accounts.GetRange(0, 5).ToArray();
+            Account[] accountPack2 = Accounts.GetRange(5, 5).ToArray();
+            Account[] accountPack3 = Accounts.GetRange(10, 5).ToArray();
+            Account[] accountPack4 = Accounts.GetRange(15, 2).ToArray();
 
-            foreach (Account account in Accounts)
-            {
-                if (account.IsActive)
-                {
-                    if (i < 5)
-                    {
-                        activeAccounts.Add(account);
-                        i++;
-                    }
-                    else
-                    {
-                        // 5 Accounts in the list, create a thread for those.
-                        flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray(), profileQueue.Dequeue())));
+            Thread thread1 = new Thread(() => StartFlipperThread(accountPack1, optionsQueue.Dequeue()));
+            thread1.IsBackground = true;
+            thread1.Start();
 
-                        // Set the counter to 1
-                        i = 1;
+            Thread thread2 = new Thread(() => StartFlipperThread(accountPack2, optionsQueue.Dequeue()));
+            thread2.IsBackground = true;
+            thread2.Start();
 
-                        // Add the account to activeAccounts
-                        activeAccounts.Clear();
-                        activeAccounts.Add(account);
-                    }
-                    
-                }
-            }
+            Thread thread3 = new Thread(() => StartFlipperThread(accountPack3, optionsQueue.Dequeue()));
+            thread3.IsBackground = true;
+            thread3.Start();
 
-            // Remaining Accounts in the list, create a thread for those.
-            flipperThreads.Add(new Thread(() => StartFlipperThread(activeAccounts.ToArray(), profileQueue.Dequeue())));
-
-            foreach (Thread thread in flipperThreads)
-            {
-                thread.IsBackground = true;
-                thread.Start();
-            }
+            Thread thread4 = new Thread(() => StartFlipperThread(accountPack4, optionsQueue.Dequeue()));
+            thread4.IsBackground = true;
+            thread4.Start();
 
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
             Application.Run(form);
         }
 
-        public static void StartFlipperThread(Account[] accounts, FirefoxProfile profile)
+        public static void StartFlipperThread(Account[] accounts, ChromeOptions options)
         {
-            Flipper flipper = new Flipper(accounts, profile);
+            Flipper flipper = new Flipper(accounts, options);
             flipper.Start();
         }
 
