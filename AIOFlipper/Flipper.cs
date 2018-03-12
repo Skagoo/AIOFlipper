@@ -15,34 +15,23 @@ namespace AIOFlipper
 {
     class Flipper
     {
-        public NgWebDriver driver;
-        private ChromeOptions options;
+        public FlippingGroup[] flippingGroups;
+        public FlippingGroup currentFlippingGroup;
 
-        public int id;
+        public NgWebDriver currentDriver;
+
+        private Account currentAccount;
 
         private static Logger logger;
 
         CouchPortal couchPortal;
 
-        private List<Account> accounts = new List<Account>();
-        private Account currentAccount;
-
         private const int timeBeforePriceUpdate = 20;
 
         // Constuctor
-        public Flipper(int id, ChromeOptions options)
+        public Flipper(FlippingGroup[] flippingGroups)
         {
-            this.options = options;
-            this.id = id;
-
-            foreach (Account account in Program.Accounts)
-            {
-                if (account.FlipperThreadId == id)
-                {
-                    accounts.Add(account);
-                }
-            }
-
+            this.flippingGroups = flippingGroups;
             couchPortal = new CouchPortal();
         }
 
@@ -63,12 +52,12 @@ namespace AIOFlipper
 
                 // Wait for the slot with the correct item name to be visible
                 logger.Debug("AbortSlot(Slot slot)\t| Waiting for the slot with the correct item name to be visible");
-                driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                currentDriver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
                 logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                 // Open the slot.
                 logger.Debug("AbortSlot(Slot slot)\t| Searching for element to open slot");
-                IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
+                IWebElement slotOpenElement = currentDriver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                 logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to open slot");
                 slotOpenElement.Click();
@@ -76,14 +65,14 @@ namespace AIOFlipper
 
                 // Check if the correct slot was opened, else try again.
                 logger.Debug("AbortSlot(Slot slot)\t| Checking if correct slot was opened");
-                driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
+                currentDriver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
                 logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                 try
                 {
                     // Click the "Abort" button.
                     logger.Debug("AbortSlot(Slot slot)\t| Searching for element to abort the offer");
-                    IWebElement offerAbortButtonElement = driver.FindElement(By.CssSelector(offerAbortButtonElementCsss), 20);
+                    IWebElement offerAbortButtonElement = currentDriver.FindElement(By.CssSelector(offerAbortButtonElementCsss), 20);
                     logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                     logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to abort the offer");
                     offerAbortButtonElement.Click();
@@ -91,7 +80,7 @@ namespace AIOFlipper
 
                     // Click the "Ok" button to confirm the offer abortion.
                     logger.Debug("AbortSlot(Slot slot)\t| Searching for element to confirm the offer abortion");
-                    IWebElement offerAbortConfirmOkElement = driver.FindElement(By.CssSelector(offerAbortConfirmOkElementCsss), 20);
+                    IWebElement offerAbortConfirmOkElement = currentDriver.FindElement(By.CssSelector(offerAbortConfirmOkElementCsss), 20);
                     logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                     logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to confirm the offer abortion");
                     offerAbortConfirmOkElement.Click();
@@ -99,7 +88,7 @@ namespace AIOFlipper
 
                     // Click the "Ok" button on the "abort request acknowledged" pop-up.
                     logger.Debug("AbortSlot(Slot slot)\t| Searching for element to accept the pop-up");
-                    IWebElement offerAbortAcknowledgedOkElement = driver.FindElement(By.CssSelector(offerAbortAcknowledgedOkElementCsss), 20);
+                    IWebElement offerAbortAcknowledgedOkElement = currentDriver.FindElement(By.CssSelector(offerAbortAcknowledgedOkElementCsss), 20);
                     logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                     logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to accept the pop-up");
                     offerAbortAcknowledgedOkElement.Click();
@@ -117,12 +106,12 @@ namespace AIOFlipper
                 {
                     // Try to find the first collection slot
                     logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the first collection slot");
-                    offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                    offerCollectionSlot1Element = currentDriver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
                     logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
 
                     // Try to find the second collection slot
                     logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the second collection slot");
-                    IWebElement offerCollectionSlot2Element = driver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 0);
+                    IWebElement offerCollectionSlot2Element = currentDriver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 0);
                     logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                     logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to collect the second collection slot");
                     offerCollectionSlot2Element.Click();
@@ -136,7 +125,7 @@ namespace AIOFlipper
 
                 // Try to find the first collection slot
                 logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the first collection slot");
-                offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                offerCollectionSlot1Element = currentDriver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
                 logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                 logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to collect the first collection slot");
                 offerCollectionSlot1Element.Click();
@@ -147,7 +136,7 @@ namespace AIOFlipper
                 try
                 {
                     logger.Debug("AbortSlot(Slot slot)\t| Searching for element to collect the first collection slot");
-                    offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 0);
+                    offerCollectionSlot1Element = currentDriver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 0);
                     logger.Debug("AbortSlot(Slot slot)\t| SUCCESS");
                     logger.Debug("AbortSlot(Slot slot)\t| Trying to click the element to collect the first collection slot");
                     offerCollectionSlot1Element.Click();
@@ -246,7 +235,7 @@ namespace AIOFlipper
 
                 // Click the "Buy" button of the slot.
                 logger.Debug("BuyItem(Slot slot)\t| Searching for element to buy item in slot");
-                IWebElement slotBuyButtonElement = driver.FindElement(By.CssSelector(slotBuyButtonElementCsss), 20);
+                IWebElement slotBuyButtonElement = currentDriver.FindElement(By.CssSelector(slotBuyButtonElementCsss), 20);
                 logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
                 logger.Debug("BuyItem(Slot slot)\t| Trying to click the element to buy item in slot");
                 slotBuyButtonElement.Click();
@@ -260,7 +249,7 @@ namespace AIOFlipper
                     {
                         // Enter the item name in the search bar.
                         logger.Debug("BuyItem(Slot slot)\t| Searching for element to search item to buy");
-                        IWebElement buySearchElement = driver.FindElement(By.CssSelector(buySearchElementCsss), 20);
+                        IWebElement buySearchElement = currentDriver.FindElement(By.CssSelector(buySearchElementCsss), 20);
                         logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
                         logger.Debug("BuyItem(Slot slot)\t| Trying to clear the text inside the element to search item to buy");
                         buySearchElement.Clear();
@@ -271,7 +260,7 @@ namespace AIOFlipper
 
                         // Wait for list to appear (slow)
                         logger.Debug("BuyItem(Slot slot)\t| Waiting for the search result item to be visible");
-                        driver.FindElement(By.CssSelector(buySearchResultItemElementCsss.Replace("CHILD_NUMBER", "1")), 10);
+                        currentDriver.FindElement(By.CssSelector(buySearchResultItemElementCsss.Replace("CHILD_NUMBER", "1")), 10);
                         logger.Debug("BuyItem(Slot slot)\t| SUCCESS");
 
                         // Find the correct item in the list.
@@ -282,7 +271,7 @@ namespace AIOFlipper
                         int i = 1; // CHILD_NUMBER is not zero-based.
                         do
                         {
-                            buySearchResultItemElement = driver.FindElement(By.CssSelector(buySearchResultItemElementCsss.Replace("CHILD_NUMBER", i.ToString())), 10);
+                            buySearchResultItemElement = currentDriver.FindElement(By.CssSelector(buySearchResultItemElementCsss.Replace("CHILD_NUMBER", i.ToString())), 10);
                             searchResultItemName = buySearchResultItemElement.Text;
                             i++;
                         } while (searchResultItemName != slot.ItemName);
@@ -315,7 +304,7 @@ namespace AIOFlipper
                     string offerPopupConfirmOkElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][16]["css_selector"];
 
                     // Fill in the quantity.
-                    IWebElement offerQuantityElement = driver.FindElement(By.CssSelector(offerQuantityElementCsss), 20);
+                    IWebElement offerQuantityElement = currentDriver.FindElement(By.CssSelector(offerQuantityElementCsss), 20);
                     offerQuantityElement.Clear();
                     //Thread.Sleep(500);
                     offerQuantityElement.SendKeys("1");
@@ -324,7 +313,7 @@ namespace AIOFlipper
                     // Sleep to avoid the popup not presenting.
                     //Thread.Sleep(1500);
 
-                    IWebElement offerPricePerItemElement = driver.FindElement(By.CssSelector(offerPricePerItemElementCsss), 20);
+                    IWebElement offerPricePerItemElement = currentDriver.FindElement(By.CssSelector(offerPricePerItemElementCsss), 20);
                     do
                     {
                         offerPricePerItemElement.Clear();
@@ -343,7 +332,7 @@ namespace AIOFlipper
 
                     try
                     {
-                        IWebElement offerPopupConfirmOkElement = driver.FindElement(By.CssSelector(offerPopupConfirmOkElementCsss), 15);
+                        IWebElement offerPopupConfirmOkElement = currentDriver.FindElement(By.CssSelector(offerPopupConfirmOkElementCsss), 15);
                         offerPopupConfirmOkElement.Click();
                     }
                     catch (Exception)
@@ -374,16 +363,16 @@ namespace AIOFlipper
                         string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
 
                         // Wait for the slot with the correct item name to be visible
-                        driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                        currentDriver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
 
-                        IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
+                        IWebElement slotOpenElement = currentDriver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
                         slotOpenElement.Click();
 
                         // Check the price it bought for and apply rule:
                         string offerTotalPriceElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][23]["css_selector"];
 
-                        IWebElement offerTotalPriceElement = driver.FindElement(By.CssSelector(offerTotalPriceElementCsss), 10);
+                        IWebElement offerTotalPriceElement = currentDriver.FindElement(By.CssSelector(offerTotalPriceElementCsss), 10);
                         string offerTotalPriceRaw = offerTotalPriceElement.Text.Replace(" ", "").Replace(",", "").Replace("gp", "");
                         offerTotalPriceRaw = Regex.Replace(offerTotalPriceRaw, @"\D", "");
 
@@ -451,7 +440,7 @@ namespace AIOFlipper
             {
                 string slotStateElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][16]["css_selector"]).Replace("SLOT_NUMBER", slotNumber.ToString());
 
-                IWebElement slotStateElement = driver.FindElement(By.CssSelector(slotStateElementCsss), 20);
+                IWebElement slotStateElement = currentDriver.FindElement(By.CssSelector(slotStateElementCsss), 20);
 
                 // This switch value filters the slot state out of the attribute.
                 // e.g.
@@ -622,23 +611,23 @@ namespace AIOFlipper
                 string offerItemNameElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][30]["css_selector"];
 
                 // Wait for the slot with the correct item name to be visible
-                driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                currentDriver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
                 // Open the slot.
-                IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
+                IWebElement slotOpenElement = currentDriver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
 
                 Thread.Sleep(1000);
 
                 // Sleep to prevent collecting other slots
                 // Check if the correct slot was opened, else try again.
-                driver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
+                currentDriver.FindElement(By.CssSelector(offerItemNameElementCsss), 20, slot.ItemName);
 
                 IWebElement offerCollectionSlot1Element;
                 try
                 {
-                    offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
-                    IWebElement offerCollectionSlot2Element = driver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 0);
+                    offerCollectionSlot1Element = currentDriver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                    IWebElement offerCollectionSlot2Element = currentDriver.FindElement(By.CssSelector(offerCollectionSlot2ElementCsss), 0);
                     offerCollectionSlot2Element.Click();
                 }
                 catch (Exception)
@@ -646,7 +635,7 @@ namespace AIOFlipper
                     // There was only one collection slot.
                 }
 
-                offerCollectionSlot1Element = driver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
+                offerCollectionSlot1Element = currentDriver.FindElement(By.CssSelector(offerCollectionSlot1ElementCsss), 5);
                 offerCollectionSlot1Element.Click();
 
 
@@ -690,7 +679,7 @@ namespace AIOFlipper
 
                 Thread.Sleep(500);
 
-                IWebElement slotItemNameElement = driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20);
+                IWebElement slotItemNameElement = currentDriver.FindElement(By.CssSelector(slotItemNameElementCsss), 20);
                 return slotItemNameElement.Text;
             }
             catch (DisconnectedFromRSCompanionException)
@@ -773,7 +762,7 @@ namespace AIOFlipper
                 string moneyPouchElementValue;
                 do
                 {
-                    moneyPouchElement = driver.FindElement(By.CssSelector(moneyPouchElementCsss), 5);
+                    moneyPouchElement = currentDriver.FindElement(By.CssSelector(moneyPouchElementCsss), 5);
 
                     moneyPouchElementValue = Regex.Replace(moneyPouchElement.Text, @"\D", "");
 
@@ -822,7 +811,7 @@ namespace AIOFlipper
 
         private void GoToRuneScapeCompanionPage(Account account)
         {
-            driver.WrappedDriver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", account.World));
+            currentDriver.WrappedDriver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", account.World));
         }
 
         private void Login(Account account)
@@ -836,9 +825,9 @@ namespace AIOFlipper
 
             try
             {
-                IWebElement usernameElement = driver.WrappedDriver.FindElement(By.CssSelector(usernameElementCsss), 30);
+                IWebElement usernameElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(usernameElementCsss), 30);
                 //#username
-                IWebElement passwordElement = driver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
+                IWebElement passwordElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
 
                 usernameElement.SendKeys(account.Email);
                 passwordElement.SendKeys(account.Password);
@@ -846,16 +835,16 @@ namespace AIOFlipper
 
                 TwoFactorAuth tfa = new TwoFactorAuth();
 
-                IWebElement authElement = driver.WrappedDriver.FindElement(By.CssSelector(authElementCsss), 20);
+                IWebElement authElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(authElementCsss), 20);
                 authElement.SendKeys("" + tfa.GetCode(account.AuthKey));
                 authElement.SendKeys(Keys.Enter);
 
-                IWebElement savePasswordNoElement = driver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
+                IWebElement savePasswordNoElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
                 savePasswordNoElement.Click();
 
                 try
                 {
-                    driver.FindElement(By.CssSelector(geTabElementCsss), 10);
+                    currentDriver.FindElement(By.CssSelector(geTabElementCsss), 10);
 
                     // Success
                     currentAccount.ConnectionRefused = false;
@@ -871,7 +860,7 @@ namespace AIOFlipper
             {
                 try
                 {
-                    driver.WrappedDriver.Navigate().Refresh();
+                    currentDriver.WrappedDriver.Navigate().Refresh();
                     //Console.Beep();
                     Login(account);
                 }
@@ -888,7 +877,7 @@ namespace AIOFlipper
             {
                 string bankTabElementCsss = (string)Program.Elements["elements"][1]["menu_tabs"][1]["css_selector"];
 
-                IWebElement bankTabElement = driver.FindElement(By.CssSelector(bankTabElementCsss), 10);
+                IWebElement bankTabElement = currentDriver.FindElement(By.CssSelector(bankTabElementCsss), 10);
                 bankTabElement.Click();
             }
             catch (DisconnectedFromRSCompanionException)
@@ -914,11 +903,11 @@ namespace AIOFlipper
                 string geTabElementCsss = (string)Program.Elements["elements"][1]["menu_tabs"][0]["css_selector"];
                 string slotListElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][1]["css_selector"];
 
-                IWebElement geTabElement = driver.FindElement(By.CssSelector(geTabElementCsss), 10);
+                IWebElement geTabElement = currentDriver.FindElement(By.CssSelector(geTabElementCsss), 10);
                 geTabElement.Click();
 
                 // Get the slots list element
-                IWebElement slotListElement = driver.FindElement(By.CssSelector(slotListElementCsss), 20);
+                IWebElement slotListElement = currentDriver.FindElement(By.CssSelector(slotListElementCsss), 20);
 
                 //foreach (IWebElement child in slotListElement.FindElements(By.TagName("li")))
                 //{
@@ -928,7 +917,7 @@ namespace AIOFlipper
                 //}
 
                 // Wait for all slots to load properly
-                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+                var wait = new WebDriverWait(currentDriver, TimeSpan.FromSeconds(20));
                 wait.Until(ExpectedConditions.VisibilityOfAllElementsLocatedBy(By.TagName("li")));
 
                 // Sleep since the slot elements behave weird and this prevents the wrong slot being used.
@@ -971,7 +960,7 @@ namespace AIOFlipper
         {
             try
             {
-                driver.Navigate().Refresh();
+                currentDriver.Navigate().Refresh();
                 GoToRuneScapeCompanionPage(currentAccount);
 
                 Login(currentAccount);
@@ -1215,7 +1204,7 @@ namespace AIOFlipper
                 string bankSearchResultItemSellElementCsss = (string)Program.Elements["elements"][3]["bank_page"][4]["css_selector"];
 
                 // Click the "Sell" button of the slot.
-                IWebElement slotSellButtonElement = driver.FindElement(By.CssSelector(slotSellButtonElementCsss), 20);
+                IWebElement slotSellButtonElement = currentDriver.FindElement(By.CssSelector(slotSellButtonElementCsss), 20);
                 slotSellButtonElement.Click();
 
                 bool itemFound = false;
@@ -1225,7 +1214,7 @@ namespace AIOFlipper
                     try
                     {
                         // Enter the item name in the search bar and send "Enter" press to search.
-                        IWebElement bankSearchElement = driver.FindElement(By.CssSelector(bankSearchElementCsss), 10);
+                        IWebElement bankSearchElement = currentDriver.FindElement(By.CssSelector(bankSearchElementCsss), 10);
                         bankSearchElement.Clear();
                         //Thread.Sleep(1500);
                         bankSearchElement.SendKeys(slot.ItemName);
@@ -1240,19 +1229,19 @@ namespace AIOFlipper
                             try
                             {
                                 //Thread.Sleep(500);
-                                IWebElement bankSearchResultItemElement = driver.FindElement(By.CssSelector(bankSearchResultItemElementCsss), 10);
+                                IWebElement bankSearchResultItemElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemElementCsss), 10);
                                 bankSearchResultItemElement.Click();
                             }
                             catch (Exception)
                             {
                                 //Thread.Sleep(500);
-                                IWebElement bankSearchResultItemElement = driver.FindElement(By.CssSelector(bankSearchResultItemElementCsss + " active"), 10);
+                                IWebElement bankSearchResultItemElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemElementCsss + " active"), 10);
                                 bankSearchResultItemElement.Click();
                             }
 
                             Thread.Sleep(1000);
 
-                            IWebElement bankSearchResultItemNameElement = driver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10);
+                            IWebElement bankSearchResultItemNameElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10);
                             searchResultItemName = bankSearchResultItemNameElement.Text;
                             i++;
                         } while (searchResultItemName != slot.ItemName);
@@ -1295,14 +1284,14 @@ namespace AIOFlipper
                     {
                         //Thread.Sleep(500);
                         // Found the item in the list, click on the sell button to open the selling page.
-                        IWebElement bankSearchResultItemSellElement = driver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss), 0);
+                        IWebElement bankSearchResultItemSellElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss), 0);
                         bankSearchResultItemSellElement.Click();
                     }
                     catch (Exception)
                     {
                         // RuneScape Companion only showing stock market button and sell button so we need 2nd child instead of 3rd.
                         //Thread.Sleep(500);
-                        IWebElement bankSearchResultItemSellElement = driver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss.Replace('3', '2')), 0);
+                        IWebElement bankSearchResultItemSellElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss.Replace('3', '2')), 0);
                         bankSearchResultItemSellElement.Click();
                     }
 
@@ -1314,7 +1303,7 @@ namespace AIOFlipper
                     string offerPopupConfirmOkElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][18]["css_selector"];
 
                     // Fill in the quantity.
-                    IWebElement offerQuantityElement = driver.FindElement(By.CssSelector(offerQuantityElementCsss), 10);
+                    IWebElement offerQuantityElement = currentDriver.FindElement(By.CssSelector(offerQuantityElementCsss), 10);
                     offerQuantityElement.Clear();
                     //Thread.Sleep(500);
                     offerQuantityElement.SendKeys("1");
@@ -1323,7 +1312,7 @@ namespace AIOFlipper
                     // Sleep to avoid the popup not presenting.
                     //Thread.Sleep(1500);
 
-                    IWebElement offerPricePerItemElement = driver.FindElement(By.CssSelector(offerPricePerItemElementCsss), 20);
+                    IWebElement offerPricePerItemElement = currentDriver.FindElement(By.CssSelector(offerPricePerItemElementCsss), 20);
                     do
                     {
                         offerPricePerItemElement.Clear();
@@ -1339,7 +1328,7 @@ namespace AIOFlipper
 
                     try
                     {
-                        IWebElement offerPopupConfirmOkElement = driver.FindElement(By.CssSelector(offerPopupConfirmOkElementCsss), 20);
+                        IWebElement offerPopupConfirmOkElement = currentDriver.FindElement(By.CssSelector(offerPopupConfirmOkElementCsss), 20);
                         offerPopupConfirmOkElement.Click();
                     }
                     catch (Exception)
@@ -1368,15 +1357,15 @@ namespace AIOFlipper
                         string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
 
                         // Wait for the slot with the correct item name to be visible
-                        driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                        currentDriver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
 
-                        IWebElement slotOpenElement = driver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
+                        IWebElement slotOpenElement = currentDriver.FindElement(By.CssSelector(slotOpenElementCsss), 10);
                         slotOpenElement.Click();
 
                         // Check the price it bought for and apply rule:
                         string offerTotalPriceElementCsss = (string)Program.Elements["elements"][2]["grand_exchange_page"][23]["css_selector"];
 
-                        IWebElement offerTotalPriceElement = driver.FindElement(By.CssSelector(offerTotalPriceElementCsss), 10);
+                        IWebElement offerTotalPriceElement = currentDriver.FindElement(By.CssSelector(offerTotalPriceElementCsss), 10);
                         string offerTotalPriceRaw = offerTotalPriceElement.Text.Replace(" ", "").Replace(",", "").Replace("gp", "");
                         offerTotalPriceRaw = Regex.Replace(offerTotalPriceRaw, @"\D", "");
 
@@ -1465,7 +1454,7 @@ namespace AIOFlipper
                 try
                 {
                     // Wait for the slot with the correct item name to be visible
-                    driver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
+                    currentDriver.FindElement(By.CssSelector(slotItemNameElementCsss), 20, slot.ItemName);
                     // The correct slot was found, set caseOnValidated to true to continue with the solution.
                     caseOneValidated = true;
                 }
@@ -1565,47 +1554,44 @@ namespace AIOFlipper
                     // Instanciate the logger.
                     logger = LogManager.GetLogger("Flipper");
 
-                    ChromeDriverService driverService = ChromeDriverService.CreateDefaultService();
-                    driverService.HideCommandPromptWindow = true;
-
-                    IWebDriver chromeDriver = new ChromeDriver(driverService, options, Timeout.InfiniteTimeSpan);
-
-                    logger.Debug("Started new firefox driver");
-
-                    // Configure timeouts (important since Protractor uses asynchronous client side scripts)
-                    chromeDriver.Manage().Timeouts().AsynchronousJavaScript = TimeSpan.FromSeconds(5);
-
-                    // Initialize the NgWebDriver
-                    driver = new NgWebDriver(chromeDriver);
-
-                    for (int i = 0; i < accounts.Count; i++)
+                    foreach (FlippingGroup flippingGroup in flippingGroups)
                     {
-                        // Set the currentAccount to tempAccount
-                        currentAccount = accounts[i];
+                        flippingGroup.InitializeWebdriver();
+                        currentDriver = flippingGroup.Driver;
 
-                        // Execute some JavaScript to open a new window
-                        ((IJavaScriptExecutor)driver).ExecuteScript("window.open();");
+                        for (int i = 0; i < flippingGroup.Accounts.Length; i++)
+                        {
+                            // Set the currentAccount to tempAccount
+                            currentAccount = flippingGroup.Accounts[i];
 
-                        // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
-                        accounts[i].TabReference = driver.WindowHandles[driver.WindowHandles.Count - 1];
+                            // Execute some JavaScript to open a new window
+                            ((IJavaScriptExecutor)currentDriver).ExecuteScript("window.open();");
 
-                        // Switch our driver to the new tab's window handle
-                        driver.SwitchTo().Window(accounts[i].TabReference);
+                            // Save a reference to our new tab's window handle, this would be the last entry in the WindowHandles collection
+                            flippingGroup.Accounts[i].TabReference = currentDriver.WindowHandles[currentDriver.WindowHandles.Count - 1];
 
-                        // Lets navigate to the RuneScape Companion web app in our new tab
-                        GoToRuneScapeCompanionPage(accounts[i]);
+                            // Switch our driver to the new tab's window handle
+                            currentDriver.SwitchTo().Window(flippingGroup.Accounts[i].TabReference);
 
-                        // Login the current Account
-                        Login(accounts[i]);
+                            // Lets navigate to the RuneScape Companion web app in our new tab
+                            GoToRuneScapeCompanionPage(flippingGroup.Accounts[i]);
 
-                        // Open the Grand Exchange page
-                        OpenGrandExchange();
+                            // Login the current Account
+                            Login(flippingGroup.Accounts[i]);
+
+                            // Open the Grand Exchange page
+                            OpenGrandExchange();
+                        }
                     }
+
                     StartFlipping();
                 }
                 catch (Exception)
                 {
-                    driver.Quit();
+                    foreach (FlippingGroup flippingGroup in flippingGroups)
+                    {
+                        flippingGroup.Driver.Quit();
+                    }
                 }
             }
         }
@@ -1614,67 +1600,79 @@ namespace AIOFlipper
         {
             do
             {
-                for (int i = 0; i < accounts.Count; i++)
+                for (int f = 0; f < flippingGroups.Length; f++)
                 {
-                    // Check if the first currentAccount has passed already.
-                    // If so, save the currentAccount to the accounts array to save the info before overriding the currentAccount varraible.
-                    if (i > 0)
+                    currentFlippingGroup = flippingGroups[f];
+                    currentDriver = currentFlippingGroup.Driver;
+
+                    for (int i = 0; i < currentFlippingGroup.Accounts.Length; i++)
                     {
-                        accounts[i - 1] = currentAccount;
-                    }
-
-                    // Get the correct currentAccount
-                    currentAccount = accounts[i];
-
-                    try
-                    {
-                        // Get the correct tab
-                        driver.SwitchTo().Window(currentAccount.TabReference);
-
-                        // Get the world from the url
-                        string url = driver.Url;
-                        string worldParameter = url.Split('/')[3];
-                        long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
-
-                        if (currentAccount.World != world)
+                        // Check if the first currentAccount has passed already.
+                        // If so, save the currentAccount to the accounts array to save the info before overriding the currentAccount varraible.
+                        if (i > 0)
                         {
-                            // If the worlds don't match, the wrong window is open, so throw an exeption.
-                            throw new NoSuchWindowException();
+                            currentFlippingGroup.Accounts[i - 1] = currentAccount;
                         }
-                    }
-                    catch (NoSuchWindowException)
-                    {
+
+                        // Get the correct currentAccount
+                        currentAccount = currentFlippingGroup.Accounts[i];
+
                         try
                         {
-                            // The correct tab was not found, assign the correct tabs for the accounts
-                            // We do this based on the world parameter in the url
-                            // Start J on 1 since the tab with index 0 will be the blank starting tab
-                            for (int j = 1; j < driver.WindowHandles.Count; j++)
+                            // Get the correct tab
+                            currentDriver.SwitchTo().Window(currentAccount.TabReference);
+
+                            // Get the world from the url
+                            string url = currentDriver.Url;
+                            string worldParameter = url.Split('/')[3];
+                            long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
+
+                            if (currentAccount.World != world)
                             {
-                                // Switch to the tab
-                                driver.SwitchTo().Window(driver.WindowHandles[j]);
-
-                                // Get the world from the url
-                                string url = driver.Url;
-                                string worldParameter = url.Split('/')[3];
-                                long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
-
-                                // Get the matching account based on the world
-                                for (int k = 0; k < accounts.Count; k++)
+                                // If the worlds don't match, the wrong window is open, so throw an exeption.
+                                throw new NoSuchWindowException();
+                            }
+                        }
+                        catch (NoSuchWindowException)
+                        {
+                            try
+                            {
+                                // The correct tab was not found, assign the correct tabs for the accounts
+                                // We do this based on the world parameter in the url
+                                // Start J on 1 since the tab with index 0 will be the blank starting tab
+                                for (int j = 1; j < currentDriver.WindowHandles.Count; j++)
                                 {
-                                    if (accounts[k].World == world)
+                                    // Switch to the tab
+                                    currentDriver.SwitchTo().Window(currentDriver.WindowHandles[j]);
+
+                                    // Get the world from the url
+                                    string url = currentDriver.Url;
+                                    string worldParameter = url.Split('/')[3];
+                                    long world = long.Parse(Regex.Replace(worldParameter, @"\D", ""));
+
+                                    // Get the matching account based on the world
+                                    for (int k = 0; k < currentFlippingGroup.Accounts.Length; k++)
                                     {
-                                        // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
-                                        accounts[k].TabReference = driver.CurrentWindowHandle;
+                                        if (currentFlippingGroup.Accounts[k].World == world)
+                                        {
+                                            // Assign the current window handle to the same index in the tabs list as the index of the account in the accounts list.
+                                            currentFlippingGroup.Accounts[k].TabReference = currentDriver.CurrentWindowHandle;
+                                        }
                                     }
                                 }
+
+                                // Get the correct tab
+                                currentDriver.SwitchTo().Window(currentAccount.TabReference);
+
+                                StartFlipping();
+                                return;
                             }
-
-                            // Get the correct tab
-                            driver.SwitchTo().Window(currentAccount.TabReference);
-
-                            StartFlipping();
-                            return;
+                            catch (WebDriverException)
+                            {
+                                Reconnect();
+                                StartFlipping();
+                                return;
+                            }
                         }
                         catch (WebDriverException)
                         {
@@ -1682,62 +1680,158 @@ namespace AIOFlipper
                             StartFlipping();
                             return;
                         }
-                    }
-                    catch (WebDriverException)
-                    {
-                        Reconnect();
-                        StartFlipping();
-                        return;
-                    }
 
-                    // Check if the account has the connectionRefused property on true.
-                    // If so, try to log the account in and skip checking the account for now
-                    // Else, continue flipping with the account
-                    if (currentAccount.ConnectionRefused)
-                    {
-                        Login(currentAccount);
+                        // Check if the account has the connectionRefused property on true.
+                        // If so, try to log the account in and skip checking the account for now
+                        // Else, continue flipping with the account
+                        if (currentAccount.ConnectionRefused)
+                        {
+                            Login(currentAccount);
 
-                        if (!currentAccount.ConnectionRefused)
-                        {
-                            OpenGrandExchange();
-                        }
-                    }
-                    else
-                    {
-                        for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)
-                        {
-                            foreach (Slot slot in currentAccount.Slots)
+                            if (!currentAccount.ConnectionRefused)
                             {
-                                bool accountHasChangedValues = false;
-
-                                string slotState = CheckSlotState(slot.Number);
-                                string oldSlotState = slot.SlotState;
-
-                                if (slot.SlotState != slotState)
+                                OpenGrandExchange();
+                            }
+                        }
+                        else
+                        {
+                            for (int timesToCheckSlots = 5; timesToCheckSlots > 0; timesToCheckSlots--)
+                            {
+                                foreach (Slot slot in currentAccount.Slots)
                                 {
-                                    slot.SlotState = slotState;
-                                    UpdateAccount(currentAccount);
-                                }
+                                    bool accountHasChangedValues = false;
 
-                                switch (slotState)
-                                {
-                                    case "empty":
-                                        {
-                                            // Check if there are items available for the account. If not, skip the slot.
-                                            if (currentAccount.GetAvailableItems().Count > 0)
+                                    string slotState = CheckSlotState(slot.Number);
+                                    string oldSlotState = slot.SlotState;
+
+                                    if (slot.SlotState != slotState)
+                                    {
+                                        slot.SlotState = slotState;
+                                        UpdateAccount(currentAccount);
+                                    }
+
+                                    switch (slotState)
+                                    {
+                                        case "empty":
                                             {
-                                                // Get item to buy + update slot value's: itemName, Value.
-                                                Item itemToBuy = GetItemToBuy(slot);
-
-                                                // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
-                                                if (itemToBuy != null)
+                                                // Check if there are items available for the account. If not, skip the slot.
+                                                if (currentAccount.GetAvailableItems().Count > 0)
                                                 {
-                                                    slot.ItemName = itemToBuy.Name;
+                                                    // Get item to buy + update slot value's: itemName, Value.
+                                                    Item itemToBuy = GetItemToBuy(slot);
 
-                                                    // Update the slotValue or currentBuyPrice if necessary.
-                                                    CheckUpdateItemAndSlot(slot.Number);
+                                                    // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
+                                                    if (itemToBuy != null)
+                                                    {
+                                                        slot.ItemName = itemToBuy.Name;
 
-                                                    // Buy item
+                                                        // Update the slotValue or currentBuyPrice if necessary.
+                                                        CheckUpdateItemAndSlot(slot.Number);
+
+                                                        // Buy item
+                                                        BuyItem(slot);
+
+                                                        // Update the slotState
+                                                        slot.SlotState = "buying";
+
+                                                        // Update the slot's time
+                                                        slot.Time = DateTime.Now;
+
+                                                        // Log
+                                                        logger.Debug(
+                                                            "Slot {0} is now buying {1} for {2} ({3}K)",
+                                                            slot.Number,
+                                                            slot.ItemName,
+                                                            slot.Value,
+                                                            slot.Value / 1000
+                                                        );
+
+                                                        accountHasChangedValues = true;
+                                                    }
+                                                }
+
+                                                break;
+                                            }
+                                        case "aborted buying":
+                                            {
+                                                // Get the name of the aborted item.
+                                                slot.ItemName = GetAbortedItemName(slot);
+
+                                                // Update the slotValue or currentBuyPrice if necessary.
+                                                CheckUpdateItemAndSlot(slot.Number);
+
+                                                // Collect the item.
+                                                CollectSlot(slot);
+
+                                                // Update the slotState
+                                                slot.SlotState = "empty";
+
+                                                // Buy the item for the updated price.
+                                                BuyItem(slot);
+
+                                                // Update the slotState
+                                                slot.SlotState = "buying";
+
+                                                // Update the slot's time
+                                                slot.Time = DateTime.Now;
+
+                                                accountHasChangedValues = true;
+
+                                                break;
+                                            }
+                                        case "aborted selling":
+                                            {
+                                                // Get the name of the aborted item.
+                                                slot.ItemName = GetAbortedItemName(slot);
+
+                                                // Update the slotValue or currentBuyPrice if necessary.
+                                                CheckUpdateItemAndSlot(slot.Number);
+
+                                                // Collect the cash.
+                                                CollectSlot(slot);
+
+                                                // Update the slotState
+                                                slot.SlotState = "empty";
+
+                                                // Sell the item for the updated price.
+                                                SellItem(slot);
+
+                                                // Update the slotState
+                                                slot.SlotState = "selling";
+
+                                                // Update the slot's time
+                                                slot.Time = DateTime.Now;
+
+                                                accountHasChangedValues = true;
+
+                                                break;
+                                            }
+                                        case "buying":
+                                            {
+                                                if (CheckUpdateItemAndSlot(slot.Number))
+                                                {
+                                                    // Log
+                                                    logger.Debug(
+                                                        "Aborting slot {0} containing {1}, which was {2}",
+                                                        slot.Number,
+                                                        slot.ItemName,
+                                                        slot.SlotState
+                                                    );
+
+                                                    // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
+                                                    // Abort the offer.
+                                                    AbortSlot(slot);
+
+                                                    // Log
+                                                    logger.Debug(
+                                                        "Aborting slot {0} was successful",
+                                                        slot.Number
+                                                    );
+
+                                                    // Update the slotState
+                                                    slot.SlotState = "aborted buying";
+
+                                                    // Buy the item.
                                                     BuyItem(slot);
 
                                                     // Update the slotState
@@ -1748,8 +1842,9 @@ namespace AIOFlipper
 
                                                     // Log
                                                     logger.Debug(
-                                                        "Slot {0} is now buying {1} for {2} ({3}K)",
+                                                        "Slot {0} is now {1} {2} for {3} ({4}K)",
                                                         slot.Number,
+                                                        slot.SlotState,
                                                         slot.ItemName,
                                                         slot.Value,
                                                         slot.Value / 1000
@@ -1757,137 +1852,110 @@ namespace AIOFlipper
 
                                                     accountHasChangedValues = true;
                                                 }
+
+                                                break;
                                             }
-
-                                            break;
-                                        }
-                                    case "aborted buying":
-                                        {
-                                            // Get the name of the aborted item.
-                                            slot.ItemName = GetAbortedItemName(slot);
-
-                                            // Update the slotValue or currentBuyPrice if necessary.
-                                            CheckUpdateItemAndSlot(slot.Number);
-
-                                            // Collect the item.
-                                            CollectSlot(slot);
-
-                                            // Update the slotState
-                                            slot.SlotState = "empty";
-
-                                            // Buy the item for the updated price.
-                                            BuyItem(slot);
-
-                                            // Update the slotState
-                                            slot.SlotState = "buying";
-
-                                            // Update the slot's time
-                                            slot.Time = DateTime.Now;
-
-                                            accountHasChangedValues = true;
-
-                                            break;
-                                        }
-                                    case "aborted selling":
-                                        {
-                                            // Get the name of the aborted item.
-                                            slot.ItemName = GetAbortedItemName(slot);
-
-                                            // Update the slotValue or currentBuyPrice if necessary.
-                                            CheckUpdateItemAndSlot(slot.Number);
-
-                                            // Collect the cash.
-                                            CollectSlot(slot);
-
-                                            // Update the slotState
-                                            slot.SlotState = "empty";
-
-                                            // Sell the item for the updated price.
-                                            SellItem(slot);
-
-                                            // Update the slotState
-                                            slot.SlotState = "selling";
-
-                                            // Update the slot's time
-                                            slot.Time = DateTime.Now;
-
-                                            accountHasChangedValues = true;
-
-                                            break;
-                                        }
-                                    case "buying":
-                                        {
-                                            if (CheckUpdateItemAndSlot(slot.Number))
+                                        case "selling":
                                             {
-                                                // Log
-                                                logger.Debug(
-                                                    "Aborting slot {0} containing {1}, which was {2}",
-                                                    slot.Number,
-                                                    slot.ItemName,
-                                                    slot.SlotState
-                                                );
+                                                if (CheckUpdateItemAndSlot(slot.Number))
+                                                {
+                                                    // Log
+                                                    logger.Debug(
+                                                        "Aborting slot {0} containing {1}, which was {2}",
+                                                        slot.Number,
+                                                        slot.ItemName,
+                                                        slot.SlotState
+                                                    );
 
-                                                // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
-                                                // Abort the offer.
-                                                AbortSlot(slot);
+                                                    // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
+                                                    // Abort the offer.
+                                                    AbortSlot(slot);
 
-                                                // Log
-                                                logger.Debug(
-                                                    "Aborting slot {0} was successful",
-                                                    slot.Number
-                                                );
+                                                    // Log
+                                                    logger.Debug(
+                                                        "Aborting slot {0} was successful",
+                                                        slot.Number
+                                                    );
 
-                                                // Update the slotState
-                                                slot.SlotState = "aborted buying";
+                                                    // Update the slotState
+                                                    slot.SlotState = "aborted selling";
 
-                                                // Buy the item.
-                                                BuyItem(slot);
+                                                    // Sell the item.
+                                                    SellItem(slot);
 
-                                                // Update the slotState
-                                                slot.SlotState = "buying";
+                                                    // Update the slotState
+                                                    slot.SlotState = "selling";
 
-                                                // Update the slot's time
-                                                slot.Time = DateTime.Now;
+                                                    // Update the slot's time
+                                                    slot.Time = DateTime.Now;
 
-                                                // Log
-                                                logger.Debug(
-                                                    "Slot {0} is now {1} {2} for {3} ({4}K)",
+                                                    // Log
+                                                    logger.Debug(
+                                                        "Slot {0} is now {1} {2} for {3} ({4}K)",
+                                                        slot.Number,
+                                                        slot.SlotState,
+                                                        slot.ItemName,
+                                                        slot.Value,
+                                                        slot.Value / 1000
+                                                    );
+
+                                                    accountHasChangedValues = true;
+                                                }
+
+                                                break;
+                                            }
+                                        case "complete buying":
+                                            {
+                                                CheckUpdateItemAndSlot(slot.Number);
+
+                                                string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
                                                     slot.Number,
                                                     slot.SlotState,
                                                     slot.ItemName,
                                                     slot.Value,
-                                                    slot.Value / 1000
+                                                    slot.Value / 1000,
+                                                    DateTime.Now - slot.Time
                                                 );
 
-                                                accountHasChangedValues = true;
-                                            }
-
-                                            break;
-                                        }
-                                    case "selling":
-                                        {
-                                            if (CheckUpdateItemAndSlot(slot.Number))
-                                            {
-                                                // Log
-                                                logger.Debug(
-                                                    "Aborting slot {0} containing {1}, which was {2}",
+                                                string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
                                                     slot.Number,
+                                                    slot.SlotState,
                                                     slot.ItemName,
-                                                    slot.SlotState
+                                                    slot.Value
                                                 );
 
-                                                // The slot's values have changed. Abort the offer and make a new one with the slot's new values.
-                                                // Abort the offer.
-                                                AbortSlot(slot);
+                                                // Log
+                                                logger.Info(eventLogLong);
+
 
                                                 // Log
                                                 logger.Debug(
-                                                    "Aborting slot {0} was successful",
+                                                    "Collecting {0} from slot {1}",
+                                                    slot.ItemName,
                                                     slot.Number
                                                 );
 
+                                                // Collect the item from the slot.
+                                                CollectSlot(slot);
+
+                                                // Log
+                                                logger.Debug(
+                                                    "Collecting {0} from slot {1} was successful",
+                                                    slot.ItemName,
+                                                    slot.Number
+                                                );
+
+                                                // Update last buy of item
+                                                currentAccount.UpdateLastBuy(slot);
+
+                                                // Add 1 to the slots BuyLimitTracker
+                                                slot.BuyLimitTracker++;
+
                                                 // Update the slotState
-                                                slot.SlotState = "aborted selling";
+                                                slot.SlotState = "empty";
+
+                                                // Update the slotValue
+                                                slot.Value = slot.GetItem().CurrentSellPrice;
 
                                                 // Sell the item.
                                                 SellItem(slot);
@@ -1909,239 +1977,152 @@ namespace AIOFlipper
                                                 );
 
                                                 accountHasChangedValues = true;
+
+                                                break;
                                             }
-
-                                            break;
-                                        }
-                                    case "complete buying":
-                                        {
-                                            CheckUpdateItemAndSlot(slot.Number);
-
-                                            string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
-                                                slot.Number,
-                                                slot.SlotState,
-                                                slot.ItemName,
-                                                slot.Value,
-                                                slot.Value / 1000,
-                                                DateTime.Now - slot.Time
-                                            );
-
-                                            string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
-                                                slot.Number,
-                                                slot.SlotState,
-                                                slot.ItemName,
-                                                slot.Value
-                                            );
-
-                                            // Log
-                                            logger.Info(eventLogLong);
-
-
-                                            // Log
-                                            logger.Debug(
-                                                "Collecting {0} from slot {1}",
-                                                slot.ItemName,
-                                                slot.Number
-                                            );
-
-                                            // Collect the item from the slot.
-                                            CollectSlot(slot);
-
-                                            // Log
-                                            logger.Debug(
-                                                "Collecting {0} from slot {1} was successful",
-                                                slot.ItemName,
-                                                slot.Number
-                                            );
-
-                                            // Update last buy of item
-                                            currentAccount.UpdateLastBuy(slot);
-
-                                            // Add 1 to the slots BuyLimitTracker
-                                            slot.BuyLimitTracker++;
-
-                                            // Update the slotState
-                                            slot.SlotState = "empty";
-
-                                            // Update the slotValue
-                                            slot.Value = slot.GetItem().CurrentSellPrice;
-
-                                            // Sell the item.
-                                            SellItem(slot);
-
-                                            // Update the slotState
-                                            slot.SlotState = "selling";
-
-                                            // Update the slot's time
-                                            slot.Time = DateTime.Now;
-
-                                            // Log
-                                            logger.Debug(
-                                                "Slot {0} is now {1} {2} for {3} ({4}K)",
-                                                slot.Number,
-                                                slot.SlotState,
-                                                slot.ItemName,
-                                                slot.Value,
-                                                slot.Value / 1000
-                                            );
-
-                                            accountHasChangedValues = true;
-
-                                            break;
-                                        }
-                                    case "complete selling":
-                                        {
-                                            CheckUpdateItemAndSlot(slot.Number);
-
-                                            string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
-                                                slot.Number,
-                                                slot.SlotState,
-                                                slot.ItemName,
-                                                slot.Value,
-                                                slot.Value / 1000,
-                                                DateTime.Now - slot.Time
-                                            );
-
-                                            string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
-                                                slot.Number,
-                                                slot.SlotState,
-                                                slot.ItemName,
-                                                slot.Value
-                                            );
-
-                                            // Log
-                                            logger.Info(eventLogLong);
-
-                                            // Log
-                                            logger.Debug(
-                                                "Collecting {0} ({1}K) from slot {2}",
-                                                slot.Value,
-                                                slot.Value / 1000,
-                                                slot.Number
-                                            );
-
-                                            // Collect the cash from the slot.
-                                            CollectSlot(slot);
-
-                                            // Log
-                                            logger.Debug(
-                                                "Collecting {0} ({1}K) from slot {2} was successful",
-                                                slot.Value,
-                                                slot.Value / 1000,
-                                                slot.Number
-                                            );
-
-                                            couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, slot.GetItem().Tier, DateTime.Now));
-
-                                            // Update the slotState
-                                            slot.SlotState = "empty";
-
-                                            // Check if the account has items available.
-                                            // If not, the slot remains empty.
-                                            if (currentAccount.GetAvailableItems().Count > 0)
+                                        case "complete selling":
                                             {
-                                                // Get item to buy + update slot value's: itemName, Value.
-                                                Item itemToBuy = GetItemToBuy(slot);
+                                                CheckUpdateItemAndSlot(slot.Number);
 
-                                                // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
-                                                if (itemToBuy != null)
+                                                string eventLogLong = String.Format("Slot {0} successfully finished {1}: {2} for {3} ({4}K) after {5}",
+                                                    slot.Number,
+                                                    slot.SlotState,
+                                                    slot.ItemName,
+                                                    slot.Value,
+                                                    slot.Value / 1000,
+                                                    DateTime.Now - slot.Time
+                                                );
+
+                                                string eventLogShort = String.Format("Slot {0} successfully finished {1}: {2} for {3}.",
+                                                    slot.Number,
+                                                    slot.SlotState,
+                                                    slot.ItemName,
+                                                    slot.Value
+                                                );
+
+                                                // Log
+                                                logger.Info(eventLogLong);
+
+                                                // Log
+                                                logger.Debug(
+                                                    "Collecting {0} ({1}K) from slot {2}",
+                                                    slot.Value,
+                                                    slot.Value / 1000,
+                                                    slot.Number
+                                                );
+
+                                                // Collect the cash from the slot.
+                                                CollectSlot(slot);
+
+                                                // Log
+                                                logger.Debug(
+                                                    "Collecting {0} ({1}K) from slot {2} was successful",
+                                                    slot.Value,
+                                                    slot.Value / 1000,
+                                                    slot.Number
+                                                );
+
+                                                couchPortal.WriteSale(new Sale(currentAccount.Username, slot.ItemName, slot.BoughtFor, slot.SoldFor, slot.SoldFor - slot.BoughtFor, slot.GetItem().Tier, DateTime.Now));
+
+                                                // Update the slotState
+                                                slot.SlotState = "empty";
+
+                                                // Check if the account has items available.
+                                                // If not, the slot remains empty.
+                                                if (currentAccount.GetAvailableItems().Count > 0)
                                                 {
-                                                    slot.ItemName = itemToBuy.Name;
+                                                    // Get item to buy + update slot value's: itemName, Value.
+                                                    Item itemToBuy = GetItemToBuy(slot);
 
-                                                    // Update the slotValue or currentBuyPrice if necessary.
-                                                    CheckUpdateItemAndSlot(slot.Number);
+                                                    // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
+                                                    if (itemToBuy != null)
+                                                    {
+                                                        slot.ItemName = itemToBuy.Name;
 
-                                                    // Buy item
-                                                    BuyItem(slot);
+                                                        // Update the slotValue or currentBuyPrice if necessary.
+                                                        CheckUpdateItemAndSlot(slot.Number);
 
-                                                    // Update the slotState
-                                                    slot.SlotState = "buying";
+                                                        // Buy item
+                                                        BuyItem(slot);
 
-                                                    // Update the slot's time
-                                                    slot.Time = DateTime.Now;
+                                                        // Update the slotState
+                                                        slot.SlotState = "buying";
 
-                                                    // Log
-                                                    logger.Debug(
-                                                        "Slot {0} is now buying {1} for {2} ({4}K)",
-                                                        slot.Number,
-                                                        slot.ItemName,
-                                                        slot.Value,
-                                                        slot.Value / 1000
-                                                    );
+                                                        // Update the slot's time
+                                                        slot.Time = DateTime.Now;
+
+                                                        // Log
+                                                        logger.Debug(
+                                                            "Slot {0} is now buying {1} for {2} ({4}K)",
+                                                            slot.Number,
+                                                            slot.ItemName,
+                                                            slot.Value,
+                                                            slot.Value / 1000
+                                                        );
+                                                    }
                                                 }
+
+                                                accountHasChangedValues = true;
+
+                                                break;
                                             }
-
-                                            accountHasChangedValues = true;
-
-                                            break;
-                                        }
-                                    case "complete":
-                                        {
-                                            // This state can be read from the source of the RuneScape Companion web app due to a bug on their behalf.
-                                            // Workaround, manually change the state based on what the slot state was before.
-                                            if (oldSlotState == "buying")
+                                        case "complete":
                                             {
-                                                slot.SlotState = "complete buying";
-                                                goto case "complete buying";
-                                            }
-                                            else if (oldSlotState == "selling")
-                                            {
-                                                slot.SlotState = "complete selling";
-                                                goto case "complete selling";
-                                            }
+                                                // This state can be read from the source of the RuneScape Companion web app due to a bug on their behalf.
+                                                // Workaround, manually change the state based on what the slot state was before.
+                                                if (oldSlotState == "buying")
+                                                {
+                                                    slot.SlotState = "complete buying";
+                                                    goto case "complete buying";
+                                                }
+                                                else if (oldSlotState == "selling")
+                                                {
+                                                    slot.SlotState = "complete selling";
+                                                    goto case "complete selling";
+                                                }
 
+                                                break;
+                                            }
+                                        default:
                                             break;
-                                        }
-                                    default:
-                                        break;
-                                }
+                                    }
 
-                                if (accountHasChangedValues == true)
-                                {
-                                    OpenBank();
-                                    OpenGrandExchange();
-                                    currentAccount.MoneyPouchValue = GetMoneyPouchValue();
+                                    if (accountHasChangedValues == true)
+                                    {
+                                        OpenBank();
+                                        OpenGrandExchange();
+                                        currentAccount.MoneyPouchValue = GetMoneyPouchValue();
 
-                                    currentAccount.SlotsValue = GetSlotsValue();
+                                        currentAccount.SlotsValue = GetSlotsValue();
 
-                                    currentAccount.TotalValue = currentAccount.MoneyPouchValue + currentAccount.SlotsValue;
-                                    UpdateAccount(currentAccount);
-                                    accountHasChangedValues = false;
+                                        currentAccount.TotalValue = currentAccount.MoneyPouchValue + currentAccount.SlotsValue;
+                                        UpdateAccount(currentAccount);
+                                        accountHasChangedValues = false;
 
-                                    logger.Debug(
-                                        "Updated account's value properties: MoneyPouchValue {0} ({1}K) | SlotsValue {2} ({3}K) | TotalValue {4} ({5}K)",
-                                        currentAccount.MoneyPouchValue,
-                                        currentAccount.MoneyPouchValue / 1000,
-                                        currentAccount.SlotsValue,
-                                        currentAccount.SlotsValue / 1000,
-                                        currentAccount.TotalValue,
-                                        currentAccount.TotalValue / 1000
-                                    );
+                                        logger.Debug(
+                                            "Updated account's value properties: MoneyPouchValue {0} ({1}K) | SlotsValue {2} ({3}K) | TotalValue {4} ({5}K)",
+                                            currentAccount.MoneyPouchValue,
+                                            currentAccount.MoneyPouchValue / 1000,
+                                            currentAccount.SlotsValue,
+                                            currentAccount.SlotsValue / 1000,
+                                            currentAccount.TotalValue,
+                                            currentAccount.TotalValue / 1000
+                                        );
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    
 
-                    // Switch to bank back to GE, to avoid logging out.
-                    //OpenBank();
-                    //OpenGrandExchange();
 
-                    // Sleep to avoid flashing
-                    Thread.Sleep(1000);
-                }
+                        // Switch to bank back to GE, to avoid logging out.
+                        //OpenBank();
+                        //OpenGrandExchange();
 
-                long totalValue = 0;
-                foreach (Account account in accounts)
-                {
-                    if (account.IsActive)
-                    {
-                        logger.Info("{0} - Total value: {1} ({2}K)", account.Username, account.TotalValue, account.TotalValue / 1000);
-                        totalValue = totalValue + account.TotalValue;
+                        // Sleep to avoid flashing
+                        Thread.Sleep(1000);
                     }
                 }
-                logger.Info("Combined total value: {0} ({1}K)", totalValue, totalValue / 1000);
 
             } while (true);
 
@@ -2149,7 +2130,7 @@ namespace AIOFlipper
 
         private void TakeScreenShot()
         {
-            Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
+            Screenshot ss = ((ITakesScreenshot)currentDriver).GetScreenshot();
             ss.SaveAsFile("../screenshot.jpg", ScreenshotImageFormat.Jpeg);
         }
 

@@ -134,6 +134,7 @@
     <Compile Include="CouchPortal.cs" />
     <Compile Include="DisconnectedFromRSCompanionException.cs" />
     <Compile Include="Flipper.cs" />
+    <Compile Include="FlippingGroup.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -26,27 +26,11 @@ namespace AIOFlipper
 
             form = new Form1();
 
+            Account[] accountPack1 = Accounts.GetRange(0, 5).ToArray();
+            Account[] accountPack2 = Accounts.GetRange(5, 5).ToArray();
+            Account[] accountPack3 = Accounts.GetRange(10, 5).ToArray();
+            Account[] accountPack4 = Accounts.GetRange(15, 2).ToArray();
 
-            // Assign 5 accounts or less per thread
-            CouchPortal couchPortal = new CouchPortal();
-
-            int i = 0;
-            int flipperThreadId = 0;
-            foreach (Account account in Accounts)
-            {
-                if (i >= 5)
-                {
-                    flipperThreadId++;
-                    i = 0;
-                }
-
-                account.FlipperThreadId = flipperThreadId;
-                couchPortal.UpdateAccount(account);
-
-                i++;
-            }            
-
-            List<Thread> flipperThreads = new List<Thread>();
             Queue<ChromeOptions> optionsQueue = new Queue<ChromeOptions>();
 
             // Fill the optionsQueue with ChromeOptions
@@ -65,30 +49,23 @@ namespace AIOFlipper
                 optionsQueue.Enqueue(options);
             }
 
-            Thread thread1 = new Thread(() => StartFlipperThread(0, optionsQueue.Dequeue()));
-            thread1.IsBackground = true;
-            thread1.Start();
+            FlippingGroup flippingGroup1 = new FlippingGroup(optionsQueue.Dequeue(), accountPack1);
+            FlippingGroup flippingGroup2 = new FlippingGroup(optionsQueue.Dequeue(), accountPack2);
+            FlippingGroup flippingGroup3 = new FlippingGroup(optionsQueue.Dequeue(), accountPack3);
+            FlippingGroup flippingGroup4 = new FlippingGroup(optionsQueue.Dequeue(), accountPack4);
 
-            Thread thread2 = new Thread(() => StartFlipperThread(1, optionsQueue.Dequeue()));
-            thread2.IsBackground = true;
-            thread2.Start();
-
-            Thread thread3 = new Thread(() => StartFlipperThread(2, optionsQueue.Dequeue()));
-            thread3.IsBackground = true;
-            thread3.Start();
-
-            Thread thread4 = new Thread(() => StartFlipperThread(3, optionsQueue.Dequeue()));
-            thread4.IsBackground = true;
-            thread4.Start();
+            Thread thread = new Thread(() => StartFlipperThread(new FlippingGroup[] { flippingGroup1, flippingGroup2, flippingGroup3, flippingGroup4}));
+            thread.IsBackground = true;
+            thread.Start();
 
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
             Application.Run(form);
         }
 
-        public static void StartFlipperThread(int id, ChromeOptions options)
+        public static void StartFlipperThread(FlippingGroup[] flippingGroups)
         {
-            Flipper flipper = new Flipper(id, options);
+            Flipper flipper = new Flipper(flippingGroups);
             flipper.Start();
         }
 
