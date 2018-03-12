@@ -729,29 +729,6 @@ namespace AIOFlipper
             return null;
         }
 
-        private string GetLastActiveItemOnItemList(Item[] items)
-        {
-            int highestIndex = 0;
-            foreach (Slot slot in currentAccount.Slots)
-            {
-                for (int i = 0; i < items.Length; i++)
-                {
-                    if (items[i].Name == slot.ItemName && i > highestIndex)
-                    {
-                        // Check for the difference between the previous highestIndex and i.
-                        // If this is higher than 25, the item in the slot has been there for a long time, so no need to count it in.
-                        if (i - highestIndex < 25)
-                        {
-                            highestIndex = i;
-                        }
-
-                    }
-                }
-            }
-
-            return items[highestIndex].Name;
-        }
-
         private long GetMoneyPouchValue()
         {
             try
