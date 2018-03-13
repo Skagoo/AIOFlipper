@@ -1580,12 +1580,24 @@ namespace AIOFlipper
                             // Login the current Account
                             Login(flippingGroup.Accounts[i]);
 
-                            // Open the Grand Exchange page
-                            OpenGrandExchange();
+                            if (!flippingGroup.Accounts[i].ConnectionRefused)
+                            {
+                                // Open the Grand Exchange page
+                                OpenGrandExchange();
+                            }
                         }
                     }
 
                     StartFlipping();
+                }
+                catch(InvalidOperationException e)
+                {
+                    Console.WriteLine("==================================BEGIN STACKTRACE==============================================");
+                    Console.WriteLine(e.StackTrace);
+                    Console.WriteLine("==================================END STACKTRACE==============================================");
+                    Console.WriteLine("==================================BEGIN MESSAGE==============================================");
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("==================================END MESSAGE==============================================");
                 }
                 catch (Exception)
                 {
@@ -1690,6 +1702,7 @@ namespace AIOFlipper
                         // Else, continue flipping with the account
                         if (currentAccount.ConnectionRefused)
                         {
+                            currentDriver.Navigate().Refresh();
                             Login(currentAccount);
 
                             if (!currentAccount.ConnectionRefused)

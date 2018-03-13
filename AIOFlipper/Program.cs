@@ -48,6 +48,7 @@ namespace AIOFlipper
                 options.AddArgument("--disable-notifications");
                 options.AddArgument("--allow-silent-push");
                 options.AddArgument("--disable-infobars");
+                options.AddArgument("--start-maximized");
                 options.AddArgument(@"--user-data-dir=C:\Users\Sacha\Documents\development\CustomChromeProfile" + j);
 
                 optionsQueue.Enqueue(options);
