@@ -45,6 +45,10 @@ namespace AIOFlipper
 
                 ChromeOptions options = new ChromeOptions();
                 options.Proxy = proxy;
+                options.AddArgument("--disable-notifications");
+                options.AddArgument("--allow-silent-push");
+                options.AddArgument("--disable-infobars");
+                options.AddArgument(@"--user-data-dir=C:\Users\Sacha\Documents\development\CustomChromeProfile");
 
                 optionsQueue.Enqueue(options);
             }

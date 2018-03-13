@@ -52,6 +52,10 @@ namespace AIOFlipper
                         // Most likely means we where disconnected anyways
                         throw new DisconnectedFromRSCompanionException();
                     }
+                    catch (Exception e)
+                    {
+                        throw e;
+                    }
 
                 }
                 else

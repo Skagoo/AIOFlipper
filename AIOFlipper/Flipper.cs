@@ -10,6 +10,8 @@ using System.Text.RegularExpressions;
 using NLog;
 using Protractor;
 using OpenQA.Selenium.Support.UI;
+using System.Net;
+using Newtonsoft.Json.Linq;
 
 namespace AIOFlipper
 {
@@ -599,6 +601,26 @@ namespace AIOFlipper
             }
         }
 
+        private void CheckUpdateProxyAuthIp()
+        {
+            string apiKey = Environment.GetEnvironmentVariable("PROXY_API_KEY");
+            string authIP = "";
+            string publicIP = "";
+            string updateResponse = "";
+
+            WebClient wc = new WebClient();
+
+            authIP = wc.DownloadString("https://api.myprivateproxy.net/v1/fetchAuthIP/" + apiKey).Replace("\"", "").Replace("[", "").Replace("]", "");
+            publicIP = wc.DownloadString("http://icanhazip.com").Replace("\n", "");
+
+            if (authIP != publicIP)
+            {
+                updateResponse = wc.UploadString("https://api.myprivateproxy.net/v1/updateAuthIP/" + apiKey, new JArray(publicIP).ToString());
+            }
+
+            wc.Dispose();
+        }
+
         private void CollectSlot(Slot slot)
         {
             try
@@ -803,25 +825,22 @@ namespace AIOFlipper
             try
             {
                 IWebElement usernameElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(usernameElementCsss), 30);
-                //#username
-                IWebElement passwordElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
-
-                usernameElement.SendKeys(account.Email);
-                passwordElement.SendKeys(account.Password);
-                passwordElement.SendKeys(Keys.Enter);
-
-                TwoFactorAuth tfa = new TwoFactorAuth();
-
-                IWebElement authElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(authElementCsss), 20);
-                authElement.SendKeys("" + tfa.GetCode(account.AuthKey));
-                authElement.SendKeys(Keys.Enter);
-
-                IWebElement savePasswordNoElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
-                savePasswordNoElement.Click();
-
                 try
                 {
-                    currentDriver.FindElement(By.CssSelector(geTabElementCsss), 10);
+                    IWebElement passwordElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
+
+                    usernameElement.SendKeys(account.Email);
+                    passwordElement.SendKeys(account.Password);
+                    passwordElement.SendKeys(Keys.Enter);
+
+                    TwoFactorAuth tfa = new TwoFactorAuth();
+                
+                    IWebElement authElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(authElementCsss), 20);
+                    authElement.SendKeys("" + tfa.GetCode(account.AuthKey));
+                    authElement.SendKeys(Keys.Enter);
+
+                    IWebElement savePasswordNoElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(savePasswordNoElementCsss), 20);
+                    savePasswordNoElement.Click();
 
                     // Success
                     currentAccount.ConnectionRefused = false;
@@ -937,6 +956,8 @@ namespace AIOFlipper
         {
             try
             {
+                CheckUpdateProxyAuthIp();
+
                 currentDriver.Navigate().Refresh();
                 GoToRuneScapeCompanionPage(currentAccount);
 
@@ -1528,11 +1549,14 @@ namespace AIOFlipper
             {
                 try
                 {
+                    CheckUpdateProxyAuthIp();
+
                     // Instanciate the logger.
                     logger = LogManager.GetLogger("Flipper");
 
                     foreach (FlippingGroup flippingGroup in flippingGroups)
                     {
+                        
                         flippingGroup.InitializeWebdriver();
                         currentDriver = flippingGroup.Driver;
 
@@ -1567,7 +1591,10 @@ namespace AIOFlipper
                 {
                     foreach (FlippingGroup flippingGroup in flippingGroups)
                     {
-                        flippingGroup.Driver.Quit();
+                        if (flippingGroup.Driver != null)
+                        {
+                            flippingGroup.Driver.Quit();
+                        }
                     }
                 }
             }
