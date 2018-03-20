@@ -810,6 +810,7 @@ namespace AIOFlipper
 
         private void GoToRuneScapeCompanionPage(Account account)
         {
+            CheckUpdateProxyAuthIp();
             currentDriver.WrappedDriver.Navigate().GoToUrl(String.Format("https://secure.runescape.com/m=world{0}/html5/comapp/", account.World));
         }
 
@@ -825,6 +826,7 @@ namespace AIOFlipper
             try
             {
                 IWebElement usernameElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(usernameElementCsss), 30);
+                
                 try
                 {
                     IWebElement passwordElement = currentDriver.WrappedDriver.FindElement(By.CssSelector(passwordElementCsss), 0);
@@ -958,7 +960,6 @@ namespace AIOFlipper
             {
                 CheckUpdateProxyAuthIp();
 
-                currentDriver.Navigate().Refresh();
                 GoToRuneScapeCompanionPage(currentAccount);
 
                 Login(currentAccount);
@@ -1572,7 +1573,7 @@ namespace AIOFlipper
                             flippingGroup.Accounts[i].TabReference = currentDriver.WindowHandles[currentDriver.WindowHandles.Count - 1];
 
                             // Switch our driver to the new tab's window handle
-                            currentDriver.SwitchTo().Window(flippingGroup.Accounts[i].TabReference);
+                            currentDriver.SwitchTo().WindowForceBackground(flippingGroup.Accounts[i].TabReference);
 
                             // Lets navigate to the RuneScape Companion web app in our new tab
                             GoToRuneScapeCompanionPage(flippingGroup.Accounts[i]);
@@ -1636,7 +1637,7 @@ namespace AIOFlipper
                         try
                         {
                             // Get the correct tab
-                            currentDriver.SwitchTo().Window(currentAccount.TabReference);
+                            currentDriver.SwitchTo().WindowForceBackground(currentAccount.TabReference);
 
                             // Get the world from the url
                             string url = currentDriver.Url;
@@ -1659,7 +1660,7 @@ namespace AIOFlipper
                                 for (int j = 1; j < currentDriver.WindowHandles.Count; j++)
                                 {
                                     // Switch to the tab
-                                    currentDriver.SwitchTo().Window(currentDriver.WindowHandles[j]);
+                                    currentDriver.SwitchTo().WindowForceBackground(currentDriver.WindowHandles[j]);
 
                                     // Get the world from the url
                                     string url = currentDriver.Url;
@@ -1678,7 +1679,7 @@ namespace AIOFlipper
                                 }
 
                                 // Get the correct tab
-                                currentDriver.SwitchTo().Window(currentAccount.TabReference);
+                                currentDriver.SwitchTo().WindowForceBackground(currentAccount.TabReference);
 
                                 StartFlipping();
                                 return;
@@ -1702,7 +1703,7 @@ namespace AIOFlipper
                         // Else, continue flipping with the account
                         if (currentAccount.ConnectionRefused)
                         {
-                            currentDriver.Navigate().Refresh();
+                            currentDriver.WrappedDriver.Navigate().Refresh();
                             Login(currentAccount);
 
                             if (!currentAccount.ConnectionRefused)
@@ -2137,7 +2138,7 @@ namespace AIOFlipper
                         //OpenGrandExchange();
 
                         // Sleep to avoid flashing
-                        Thread.Sleep(1000);
+                        //Thread.Sleep(1000);
                     }
                 }
 

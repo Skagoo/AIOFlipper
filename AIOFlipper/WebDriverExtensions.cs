@@ -1,6 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 
 namespace AIOFlipper
@@ -137,6 +138,28 @@ namespace AIOFlipper
             {
                 throw new DisconnectedFromRSCompanionException();
             }
+        }
+
+        public static IWebDriver WindowForceBackground(this ITargetLocator targetLocator, string windowName)
+        {
+            IWebDriver driver = targetLocator.Window(windowName);
+
+            try
+            {
+                foreach (Process process in SetWindowPosition.GetPrimaryProcesses("chrome"))
+                {
+                    SetWindowPosition.ForceWindowToStayOnBottom(process);
+                    Console.WriteLine("Successfully pushed back a chrome window with PID: " + process.Id);
+                }
+
+                Console.WriteLine("Successfully pushed back the chrome windows.");
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Failed to push back the chrome windows.");
+            }
+            
+            return driver;
         }
     }
 }
