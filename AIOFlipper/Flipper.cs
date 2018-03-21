@@ -744,7 +744,7 @@ namespace AIOFlipper
 
                 // Randomise taking a top margin one, and a random one to keep margins up to date.
                 Random random = new Random();
-                if (random.Next(0, 2) == 0) return availableItems.First();
+                if (random.Next(0, 4) != 0) return availableItems.First();
                 else return availableItems[random.Next(0, availableItems.Count)];
             }
 
@@ -1586,6 +1586,8 @@ namespace AIOFlipper
                                 // Open the Grand Exchange page
                                 OpenGrandExchange();
                             }
+
+                            Console.WriteLine("Successfully logged in: " + currentAccount.Email);
                         }
                     }
 

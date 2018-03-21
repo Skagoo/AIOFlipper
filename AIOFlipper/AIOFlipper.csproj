@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E8088EB7-25BE-4DAF-95FC-074FC57AF1AF}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>AIOFlipper</RootNamespace>
     <AssemblyName>AIOFlipper</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>

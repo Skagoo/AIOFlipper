@@ -17,14 +17,17 @@ namespace AIOFlipper
         /// 
 
         public static Form1 form;
+        public static JObject Elements;
 
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            //Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
 
-            form = new Form1();
+            //form = new Form1();
+
+            Elements = GetElements();
 
             Account[] accountPack1 = Accounts.GetRange(0, 5).ToArray();
             Account[] accountPack2 = Accounts.GetRange(5, 5).ToArray();
@@ -49,6 +52,9 @@ namespace AIOFlipper
                 options.AddArgument("--allow-silent-push");
                 options.AddArgument("--disable-infobars");
                 options.AddArgument("--start-maximized");
+                //options.AddArgument("--headless");
+                //options.AddArgument("--disable-gpu");
+                //options.AddArgument("--window-size=1600x1200");
                 options.AddArgument(@"--user-data-dir=C:\Users\Sacha\Documents\development\CustomChromeProfile" + j);
 
                 optionsQueue.Enqueue(options);
@@ -59,13 +65,21 @@ namespace AIOFlipper
             FlippingGroup flippingGroup3 = new FlippingGroup(optionsQueue.Dequeue(), accountPack3);
             FlippingGroup flippingGroup4 = new FlippingGroup(optionsQueue.Dequeue(), accountPack4);
 
-            Thread thread = new Thread(() => StartFlipperThread(new FlippingGroup[] { flippingGroup1, flippingGroup2, flippingGroup3, flippingGroup4}));
+            Thread thread = new Thread(() => StartFlipperThread(new FlippingGroup[] { flippingGroup1, flippingGroup2 }));
             thread.IsBackground = true;
             thread.Start();
 
+            Thread thread2 = new Thread(() => StartFlipperThread(new FlippingGroup[] { flippingGroup3, flippingGroup4 }));
+            thread2.IsBackground = true;
+            thread2.Start();
+
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
-            Application.Run(form);
+            //Application.Run(form);
+            while (true)
+            {
+                Console.ReadLine();
+            }
         }
 
         public static void StartFlipperThread(FlippingGroup[] flippingGroups)
@@ -97,13 +111,10 @@ namespace AIOFlipper
             }
         }
 
-        public static JObject Elements
+        public static JObject GetElements()
         {
-            get
-            {
-                string json = File.ReadAllText(@"C:\Users\Sacha\Documents\development\csharp\AIOFlipper\AIOFlipper\data\elements.json");
-                return JObject.Parse(json);
-            }
+            string json = File.ReadAllText(@"C:\Users\Sacha\Documents\development\csharp\AIOFlipper\AIOFlipper\data\elements.json");
+            return JObject.Parse(json);
         }
 
     }

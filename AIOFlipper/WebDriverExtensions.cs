@@ -148,8 +148,15 @@ namespace AIOFlipper
             {
                 foreach (Process process in SetWindowPosition.GetPrimaryProcesses("chrome"))
                 {
-                    SetWindowPosition.ForceWindowToStayOnBottom(process);
-                    Console.WriteLine("Successfully pushed back a chrome window with PID: " + process.Id);
+                    if (process.Id != 1816)
+                    {
+                        SetWindowPosition.ForceWindowToStayOnBottom(process);
+                        Console.WriteLine("Successfully pushed back a chrome window with PID: " + process.Id);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Left chrome window with PID " + process.Id + " untouched.");
+                    }
                 }
 
                 Console.WriteLine("Successfully pushed back the chrome windows.");
@@ -158,7 +165,7 @@ namespace AIOFlipper
             {
                 Console.WriteLine("Failed to push back the chrome windows.");
             }
-            
+
             return driver;
         }
     }
