@@ -53,7 +53,7 @@ namespace AIOFlipper
                 //options.AddArgument("--headless");
                 //options.AddArgument("--disable-gpu");
                 //options.AddArgument("--window-size=1600x1200");
-                options.AddArgument(@"--user-data-dir=Z:\development\CustomChromeProfile" + j);
+                options.AddArgument(@"--user-data-dir=C:\Users\Sacha\Documents\development\CustomChromeProfile" + j);
 
                 optionsQueue.Enqueue(options);
             }
@@ -110,7 +110,7 @@ namespace AIOFlipper
 
         public static JObject GetElements()
         {
-            string json = File.ReadAllText(@"Z:\development\csharp\AIOFlipper\AIOFlipper\data\elements.json");
+            string json = File.ReadAllText(@"C:\Users\Sacha\Documents\development\csharp\AIOFlipper\AIOFlipper\data\elements.json");
             return JObject.Parse(json);
         }
 
