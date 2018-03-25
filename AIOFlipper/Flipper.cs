@@ -816,7 +816,7 @@ namespace AIOFlipper
 
         private void Login(Account account, int attempt = 1)
         {
-            if (attempt <= 5)
+            if (attempt <= 3)
             {
                 string usernameElementCsss = (string)Program.Elements["elements"][0]["login_form"][0]["css_selector"];
                 string passwordElementCsss = (string)Program.Elements["elements"][0]["login_form"][1]["css_selector"];
