@@ -35,6 +35,9 @@ namespace AIOFlipper
         [JsonProperty("isActive")]
         public bool IsActive { get; set; }
 
+        [JsonProperty("memberUntil")]
+        public DateTime MemberUntil { get; set; }
+
         [JsonProperty("world")]
         public long World { get; set; }
 

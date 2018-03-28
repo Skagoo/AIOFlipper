@@ -30,7 +30,8 @@ namespace AIOFlipper
             Account[] accountPack1 = Accounts.GetRange(0, 5).ToArray();
             Account[] accountPack2 = Accounts.GetRange(5, 5).ToArray();
             Account[] accountPack3 = Accounts.GetRange(10, 5).ToArray();
-            Account[] accountPack4 = Accounts.GetRange(15, 2).ToArray();
+            Account[] accountPack4 = Accounts.GetRange(15, 5).ToArray();
+            Account[] accountPack5 = Accounts.GetRange(20, 5).ToArray();
 
             Queue<ChromeOptions> optionsQueue = new Queue<ChromeOptions>();
 
@@ -62,6 +63,7 @@ namespace AIOFlipper
             FlippingGroup flippingGroup2 = new FlippingGroup(optionsQueue.Dequeue(), accountPack2);
             FlippingGroup flippingGroup3 = new FlippingGroup(optionsQueue.Dequeue(), accountPack3);
             FlippingGroup flippingGroup4 = new FlippingGroup(optionsQueue.Dequeue(), accountPack4);
+            FlippingGroup flippingGroup5 = new FlippingGroup(optionsQueue.Dequeue(), accountPack5);
 
             Thread thread = new Thread(() => StartFlipperThread(new FlippingGroup[] { flippingGroup1, flippingGroup2 }));
             thread.IsBackground = true;
@@ -70,6 +72,10 @@ namespace AIOFlipper
             Thread thread2 = new Thread(() => StartFlipperThread(new FlippingGroup[] { flippingGroup3, flippingGroup4 }));
             thread2.IsBackground = true;
             thread2.Start();
+
+            Thread thread3 = new Thread(() => StartFlipperThread(new FlippingGroup[] { flippingGroup5 }));
+            thread3.IsBackground = true;
+            thread3.Start();
 
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
