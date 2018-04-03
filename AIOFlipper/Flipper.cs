@@ -239,7 +239,10 @@ namespace AIOFlipper
                     {
                         offerPricePerItemElement.Clear();
                         offerPricePerItemElement.SendKeys(slot.Value.ToString());
-                        Thread.Sleep(500);
+                        //Thread.Sleep(500);
+
+                        // Replacement for above sleep
+                        currentDriver.WaitForAttribute(offerPricePerItemElement, "value", slot.Value.ToString(), 1);
 
                     } while (offerPricePerItemElement.GetAttribute("value") != slot.Value.ToString());
 
@@ -549,7 +552,8 @@ namespace AIOFlipper
                 IWebElement slotOpenElement = currentDriver.FindElement(By.CssSelector(slotOpenElementCsss), 20);
                 slotOpenElement.Click();
 
-                Thread.Sleep(1000);
+                //Thread.Sleep(1000);
+                // Disabled the above since it might not need to be replaced.
 
                 // Sleep to prevent collecting other slots
                 // Check if the correct slot was opened, else try again.
@@ -607,6 +611,7 @@ namespace AIOFlipper
             {
                 string slotItemNameElementCsss = ((string)Program.Elements["elements"][2]["grand_exchange_page"][0]["slot"][9]["css_selector"]).Replace("SLOT_NUMBER", slot.Number.ToString());
 
+                // Remove sleep since it is not needed
                 Thread.Sleep(500);
 
                 IWebElement slotItemNameElement = currentDriver.FindElement(By.CssSelector(slotItemNameElementCsss), 20);
@@ -819,7 +824,13 @@ namespace AIOFlipper
                 wait.Until(ExpectedConditions.VisibilityOfAllElementsLocatedBy(By.TagName("li")));
 
                 // Sleep since the slot elements behave weird and this prevents the wrong slot being used.
-                Thread.Sleep(1000);
+                // NEEDS TO BE REPLACED!
+                //Thread.Sleep(1000);
+
+                // Replacement for sleep
+                // Check if the class of the body tag is NOT 'loading'
+                IWebElement bodyElement = currentDriver.FindElement(By.TagName("body"));
+                currentDriver.WaitForAttribute(bodyElement, "class", "loading", 2);
             }
             catch (DisconnectedFromRSCompanionException)
             {
@@ -912,9 +923,7 @@ namespace AIOFlipper
                                 bankSearchResultItemElement.Click();
                             }
 
-                            Thread.Sleep(1000);
-
-                            IWebElement bankSearchResultItemNameElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10);
+                            IWebElement bankSearchResultItemNameElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10, slot.ItemName);
                             searchResultItemName = bankSearchResultItemNameElement.Text;
                             i++;
                         } while (searchResultItemName != slot.ItemName);
@@ -982,7 +991,10 @@ namespace AIOFlipper
                     {
                         offerPricePerItemElement.Clear();
                         offerPricePerItemElement.SendKeys(slot.Value.ToString());
-                        Thread.Sleep(500);
+                        //Thread.Sleep(500);
+
+                        // Replacement for above sleep
+                        currentDriver.WaitForAttribute(offerPricePerItemElement, "value", slot.Value.ToString(), 1);
 
                     } while (offerPricePerItemElement.GetAttribute("value") != slot.Value.ToString());
 

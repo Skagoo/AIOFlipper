@@ -105,6 +105,21 @@ namespace AIOFlipper
             }
         }
 
+        public static bool WaitForAttribute(this IWebDriver driver, IWebElement element, string attributeName, string attributeValue, int timeoutInSeconds = 5)
+        {
+            // Build a function with a signature compatible with the WebDriverWait.Until method
+            Func<IWebDriver, bool> testCondition = (x) => element.GetAttribute(attributeName).Equals(attributeValue);
+
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutInSeconds));
+
+            // Wait until either the test condition is true or timeout
+            try { wait.Until(testCondition); }
+            catch (WebDriverTimeoutException e) { }
+
+            // Return a value to indicate if our wait was successful
+            return testCondition.Invoke(null);
+        }
+
         private static bool CheckInternetConnectivity()
         {
             try
