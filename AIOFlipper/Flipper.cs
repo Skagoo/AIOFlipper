@@ -26,7 +26,7 @@ namespace AIOFlipper
 
         CouchPortal couchPortal;
 
-        private const int timeBeforePriceUpdate = 20;
+        private const int timeBeforePriceUpdate = 15;
 
         // Constuctor
         public Flipper(FlippingGroup[] flippingGroups)
@@ -267,8 +267,7 @@ namespace AIOFlipper
                         return;
                     }
 
-                    // YUP
-                    // Check the collection slots to check for INS (instant sell)
+                    // Check the collection slots to check for INB (instant buy)
                     IWebElement offerCollectionSlot1Element;
                     bool INB;
                     try
@@ -299,17 +298,23 @@ namespace AIOFlipper
                         }
                         catch (FormatException)
                         {
-                            offerTotalPrice = slot.Value;
+                            offerTotalPrice = slot.Value - 50000;
                         }
 
-                        // Assign the offerTotalPrice value to slotValue
-                        slot.Value = offerTotalPrice;
+                        if (offerTotalPrice == 0)
+                        {
+                            // This is a bug with the RuneScape Companion website.
+                            offerTotalPrice = slot.Value - 50000;
+                        }
 
                         // Apply Flipchat rule:
                         // Reports labelled with 'INB' require you to reduce the buy price of the reported item by 50k from the reported price.
                         // Change only with 25K, since the slot will be evaluated as NIB later on the next slotCheck, and will thus be changed with the other 25K.
+                        // Assign the offerTotalPrice value to slotValue
+                        slot.Value = offerTotalPrice - 25000;
+
                         Item item = slot.GetItem();
-                        item.CurrentBuyPrice = offerTotalPrice - 25000;
+                        item.CurrentBuyPrice = slot.Value;
 
                         // Update the item
                         UpdateItem(item);
@@ -424,7 +429,10 @@ namespace AIOFlipper
                         {
                             // The item is trying to be bought for the slotValue for more than the allowed timeBeforePriceUpdate.
                             // Increase the slotValue with the priceIncrementValue.
+                            // Add 1 to the pricingRule.
                             slot.Value = slot.Value + item.PriceIncrementValue;
+                            slot.PricingRule++;
+
                             currentAccount.Slots[slotNumber - 1] = slot;
 
                             changed = true;
@@ -434,7 +442,10 @@ namespace AIOFlipper
                         {
                             // The slotValue is lower than Item's currentBuyPrice. The currentBuyPrice is the adviced price to buy the item for.
                             // Change the slotValue of the item to the currentBuyPrice and update the currentAccount's slot.
+                            // Reset the pricingRule to 0.
                             slot.Value = item.CurrentBuyPrice;
+                            slot.PricingRule = 0;
+
                             currentAccount.Slots[slotNumber - 1] = slot;
 
                             changed = true;
@@ -449,6 +460,19 @@ namespace AIOFlipper
                             UpdateItem(item);
                         }
 
+                        if (slot.PricingRule >= 5)
+                        {
+                            // The item is trying to be bought for more than RX5.
+                            // Increase the slotValue with the priceIncrementValue.
+                            // Add 1 to the pricingRule.
+                            slot.Value = slot.Value + item.PriceIncrementValue;
+                            slot.PricingRule++;
+
+                            currentAccount.Slots[slotNumber - 1] = slot;
+
+                            changed = true;
+                        }
+
                         return changed;
                     }
                 case "selling":
@@ -458,7 +482,10 @@ namespace AIOFlipper
                         {
                             // The item is trying to be sold for the slotValue for more than the allowed timeBeforePriceUpdate.
                             // Decrease the slotValue with the priceDecrementValue.
+                            // Add 1 to the pricingRule.
                             slot.Value = slot.Value - item.PriceDecrementValue;
+                            slot.PricingRule++;
+
                             currentAccount.Slots[slotNumber - 1] = slot;
 
                             changed = true;
@@ -468,7 +495,10 @@ namespace AIOFlipper
                         {
                             // The slotValue is higher than Item's currentSellPrice. The currentSellPrice is the adviced price to sell the item for.
                             // Change the slotValue of the item to the currentSellPrice and update the currentAccount's slot.
+                            // Reset the pricingRule to 0.
                             slot.Value = item.CurrentSellPrice;
+                            slot.PricingRule = 0;
+
                             currentAccount.Slots[slotNumber - 1] = slot;
 
                             changed = true;
@@ -481,6 +511,19 @@ namespace AIOFlipper
                             item.CurrentBuyPrice = item.CurrentBuyPrice - item.MinimalMargin;
                             Console.WriteLine("Decreased item.CurrentBuyPrice to keep margins: " + item.CurrentBuyPrice);
                             UpdateItem(item);
+                        }
+
+                        if (slot.PricingRule >= 5)
+                        {
+                            // The item is trying to be sold for more than RX5.
+                            // Decrease the slotValue with the PriceIncrementValue.
+                            // Add 1 to the pricingRule.
+                            slot.Value = slot.Value - item.PriceIncrementValue;
+                            slot.PricingRule++;
+
+                            currentAccount.Slots[slotNumber - 1] = slot;
+
+                            changed = true;
                         }
 
                         return changed;
@@ -1070,14 +1113,22 @@ namespace AIOFlipper
                         }
                         catch (FormatException)
                         {
-                            offerTotalPrice = slot.Value;
+                            offerTotalPrice = slot.Value + 50000;
+                        }
+
+                        if (offerTotalPrice == 0)
+                        {
+                            // This is a bug with the RuneScape Companion website
+                            offerTotalPrice = slot.Value + 50000;
                         }
 
                         // Apply Flipchat rule:
                         // Reports labelled with 'INS' require you to increase the sell price of the reported item by 50k from the reported price.
                         // Change only with 25K, since the slot will be evaluated as NIS later on the next slotCheck, and will thus be changed with the other 25K.
+                        // Assign the offerTotalPrice value to slotValue
+                        slot.Value = offerTotalPrice + 25000;
                         Item item = slot.GetItem();
-                        item.CurrentSellPrice = offerTotalPrice + 25000;
+                        item.CurrentSellPrice = slot.Value;
 
                         // Update the item
                         UpdateItem(item);
@@ -1566,6 +1617,9 @@ namespace AIOFlipper
                                             {
                                                 CheckUpdateItemAndSlot(slot.Number);
 
+                                                // Reset the pricingRule to 0.
+                                                slot.PricingRule = 0;
+
                                                 // Collect the item from the slot.
                                                 CollectSlot(slot);
 
@@ -1597,6 +1651,9 @@ namespace AIOFlipper
                                         case "complete selling":
                                             {
                                                 CheckUpdateItemAndSlot(slot.Number);
+
+                                                // Reset the pricingRule to 0.
+                                                slot.PricingRule = 0;
 
                                                 // Collect the cash from the slot.
                                                 CollectSlot(slot);
