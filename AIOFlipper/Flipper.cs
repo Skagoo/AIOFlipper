@@ -923,7 +923,27 @@ namespace AIOFlipper
                                 bankSearchResultItemElement.Click();
                             }
 
-                            IWebElement bankSearchResultItemNameElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10, slot.ItemName);
+                            // Sleep replacement
+                            try
+                            {
+                                // Wait for the sell button.
+                                IWebElement bankSearchResultItemSellElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss), 2);
+                            }
+                            catch (Exception)
+                            {
+                                try
+                                {
+                                    // RuneScape Companion only showing stock market button and sell button so we need 2nd child instead of 3rd.
+                                    IWebElement bankSearchResultItemSellElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss.Replace('3', '2')), 2);
+                                }
+                                catch (Exception)
+                                {
+                                    // Retry, do nothing
+                                }
+                                
+                            }
+
+                            IWebElement bankSearchResultItemNameElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10);
                             searchResultItemName = bankSearchResultItemNameElement.Text;
                             i++;
                         } while (searchResultItemName != slot.ItemName);
