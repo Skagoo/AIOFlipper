@@ -921,6 +921,95 @@ namespace AIOFlipper
             }
         }
 
+        private bool SearchItemInBank(Slot slot)
+        {
+            string bankSearchElementCsss = (string)Program.Elements["elements"][3]["bank_page"][0]["css_selector"];
+            string bankSearchResultItemElementCsss = (string)Program.Elements["elements"][3]["bank_page"][1]["css_selector"];
+            string bankSearchResultItemNameElementCsss = (string)Program.Elements["elements"][3]["bank_page"][2]["css_selector"];
+
+            string bankSearchResultItemSellElementCsss = (string)Program.Elements["elements"][3]["bank_page"][4]["css_selector"];
+
+            // Open the bank
+            OpenBank();
+
+            bool itemFound = false;
+            int attemps = 1;
+            do
+            {
+                try
+                {
+                    // Enter the item name in the search bar and send "Enter" press to search.
+                    IWebElement bankSearchElement = currentDriver.FindElement(By.CssSelector(bankSearchElementCsss), 10);
+                    bankSearchElement.Clear();
+
+                    bankSearchElement.SendKeys(slot.ItemName);
+
+                    // Find the correct item in the list.
+                    // Sometimes no result shows up in the list due to a bug in the RuneScape Companion web app.
+                    string searchResultItemName = "";
+
+                    int i = 1; // CHILD_NUMBER is not zero-based.
+                    do
+                    {
+                        try
+                        {
+                            IWebElement bankSearchResultItemElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemElementCsss), 10);
+                            bankSearchResultItemElement.Click();
+                        }
+                        catch (Exception)
+                        {
+                            IWebElement bankSearchResultItemElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemElementCsss + " active"), 10);
+                            bankSearchResultItemElement.Click();
+                        }
+
+                        // Sleep replacement
+                        try
+                        {
+                            // Wait for the sell button.
+                            IWebElement bankSearchResultItemSellElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss), 2);
+                        }
+                        catch (Exception)
+                        {
+                            try
+                            {
+                                // RuneScape Companion only showing stock market button and sell button so we need 2nd child instead of 3rd.
+                                IWebElement bankSearchResultItemSellElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemSellElementCsss.Replace('3', '2')), 2);
+                            }
+                            catch (Exception)
+                            {
+                                // Retry, do nothing
+                            }
+
+                        }
+
+                        IWebElement bankSearchResultItemNameElement = currentDriver.FindElement(By.CssSelector(bankSearchResultItemNameElementCsss), 10);
+                        searchResultItemName = bankSearchResultItemNameElement.Text;
+                        i++;
+                    } while (searchResultItemName != slot.ItemName);
+
+                    // Set the itemFound varriable to true to escape the while loop.
+                    itemFound = true;
+
+                }
+                catch (DisconnectedFromRSCompanionException)
+                {
+                    throw new DisconnectedFromRSCompanionException();
+                }
+                catch (NoSuchElementException)
+                {
+                    itemFound = false;
+                }
+                catch (Exception)
+                {
+                    // The item was not present. Making a new attempt to enter the name in the search bar.
+                    Console.WriteLine("Error in searching for item. Attempt: " + attemps);
+                    attemps++;
+                }
+            } while (!itemFound && attemps <= 5);
+
+            return itemFound;
+        }
+
         private void SellItem(Slot slot)
         {
             try
@@ -1482,30 +1571,64 @@ namespace AIOFlipper
                                     {
                                         case "empty":
                                             {
-                                                // Check if there are items available for the account. If not, skip the slot.
-                                                if (currentAccount.GetAvailableItems().Count > 0)
+                                                // Check if the previous item in slot was sold by checking the value of the slot to be equal to the slot.SoldFor property.
+                                                // We do this because a disconnect could happen followed up by placing the account on connectionRefused True due to not connecting.
+                                                // This would mean the account remains its empty slotState.
+                                                // Set a value to keep track if a new item is required.
+                                                bool emptyConfirmed = true;
+
+                                                if (slot.Value != slot.SoldFor)
                                                 {
-                                                    // Get item to buy + update slot value's: itemName, Value.
-                                                    Item itemToBuy = GetItemToBuy(slot);
-
-                                                    // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
-                                                    if (itemToBuy != null)
+                                                    // Values are not equal so the item might not have been sold yet.
+                                                    // Check for the item in the bank
+                                                    if (SearchItemInBank(slot))
                                                     {
-                                                        slot.ItemName = itemToBuy.Name;
-
-                                                        // Update the slotValue or currentBuyPrice if necessary.
-                                                        CheckUpdateItemAndSlot(slot.Number);
-
-                                                        // Buy item
-                                                        BuyItem(slot);
+                                                        // The item was found
+                                                        emptyConfirmed = false;
 
                                                         // Update the slotState
-                                                        slot.SlotState = "buying";
+                                                        slot.SlotState = "aborted selling";
+
+                                                        // Sell the item.
+                                                        SellItem(slot);
+
+                                                        // Update the slotState
+                                                        slot.SlotState = "selling";
 
                                                         // Update the slot's time
                                                         slot.Time = DateTime.Now;
 
                                                         accountHasChangedValues = true;
+                                                    }
+                                                }
+                                                
+                                                if (emptyConfirmed)
+                                                {
+                                                    // Check if there are items available for the account. If not, skip the slot.
+                                                    if (currentAccount.GetAvailableItems().Count > 0)
+                                                    {
+                                                        // Get item to buy + update slot value's: itemName, Value.
+                                                        Item itemToBuy = GetItemToBuy(slot);
+
+                                                        // Check if itemToBuy is not null. If not continue, else it means a cooldown has been set.
+                                                        if (itemToBuy != null)
+                                                        {
+                                                            slot.ItemName = itemToBuy.Name;
+
+                                                            // Update the slotValue or currentBuyPrice if necessary.
+                                                            CheckUpdateItemAndSlot(slot.Number);
+
+                                                            // Buy item
+                                                            BuyItem(slot);
+
+                                                            // Update the slotState
+                                                            slot.SlotState = "buying";
+
+                                                            // Update the slot's time
+                                                            slot.Time = DateTime.Now;
+
+                                                            accountHasChangedValues = true;
+                                                        }
                                                     }
                                                 }
 
