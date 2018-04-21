@@ -28,6 +28,8 @@ namespace AIOFlipper
 
         private const int timeBeforePriceUpdate = 15;
 
+        private int timeBeforePriceUpdateLong = 25;
+
         // Constuctor
         public Flipper(FlippingGroup[] flippingGroups)
         {
@@ -425,7 +427,7 @@ namespace AIOFlipper
                 case "buying":
                     {
                         bool changed = false;
-                        if ((DateTime.Now - slot.Time).TotalMinutes >= timeBeforePriceUpdate)
+                        if ((DateTime.Now - slot.Time).TotalMinutes >= timeBeforePriceUpdateLong)
                         {
                             // The item is trying to be bought for the slotValue for more than the allowed timeBeforePriceUpdate.
                             // Increase the slotValue with the priceIncrementValue.
@@ -478,7 +480,7 @@ namespace AIOFlipper
                 case "selling":
                     {
                         bool changed = false;
-                        if ((DateTime.Now - slot.Time).TotalMinutes >= timeBeforePriceUpdate)
+                        if ((DateTime.Now - slot.Time).TotalMinutes >= timeBeforePriceUpdateLong)
                         {
                             // The item is trying to be sold for the slotValue for more than the allowed timeBeforePriceUpdate.
                             // Decrease the slotValue with the priceDecrementValue.
